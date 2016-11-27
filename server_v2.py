@@ -14,16 +14,18 @@ class player():
     positiony = 0
     positionx = 0
     direction = 1
+    claimed_dots=[]
 
-    def __init__(self, conn, id, positionx, positiony, direction):
+    def __init__(self, conn, id, positionx, positiony, direction,claimed_dots):
         self.conn = conn
         self.id = id
         self.positiony = positionx
         self.positionx = positiony
         self.direction = direction
+        self.claimed_dots = claimed_dots
 
     def __str__(self):
-        return "conn: {4}, id: {0}, x: {1}, y: {2}, dir: {3}".format(self.id, self.positiony, self.positionx, self.direction, self.conn)
+        return "conn: {4}, id: {0}, x: {1}, y: {2}, dir: {3}, cm {5}".format(self.id, self.positiony, self.positionx, self.direction, self.conn, self.claimed_dots)
 
 
 def init(size_map):
@@ -65,7 +67,7 @@ def get_connections():
         conn, addr = s.accept()
         conn.settimeout(3)
         print('Connected by', addr)
-        players.append(player(conn, len(players)+1, int(random.uniform(0, len(arr))), int(random.uniform(0, len(arr))), 1))
+        players.append(player(conn, len(players)+1, int(random.uniform(0, len(arr))), int(random.uniform(0, len(arr))), 1,[]))
         #players.append(conn)
         #move(arr, players[len(players)-1])
         print(players)
@@ -84,24 +86,36 @@ def show_map(arr):
 def move(arr, player):
     if player.direction == 1 and player.positionx>0: #^
         player.positionx -= 1
-        print("up")
+        #print("up")
     if player.direction == -1 and player.positionx<(len(arr)-1):
         player.positionx += 1
-        print("down")
+        #print("down")
     if player.direction == 0 and player.positiony>0:
         player.positiony -= 1
-        print("left")
+        #print("left")
     if player.direction == 2 and player.positiony<(len(arr)-1):
         player.positiony += 1
-        print("right")
-    print(player.positionx, player.positiony)
+        #print("right")
+    #print(player.positionx, player.positiony)
     arr[player.positionx][player.positiony] = player.id
+    if [player.positionx,player.positiony] not in player.claimed_dots:
+        player.claimed_dots.append([player.positionx,player.positiony])
 
 
 def move_all(arr):
     for i in range(len(players)):
         move(arr, players[i])
 
+def remove_player(index):
+    print("Delete player: ", index)
+    #print(players[index].claimed_dots[0])
+    for i in range(len(players[index].claimed_dots)):
+        #print(players[index].claimed_dots[0][i][0],players[index].claimed_dots[i][0])
+        arr[players[index].claimed_dots[i][0]][players[index].claimed_dots[i][1]]=0
+
+    players[index].conn.close()
+    players.pop(index)
+    print(players)
 
 #move(arr, players[0])
 
@@ -111,11 +125,12 @@ def update_map():
         if players:
             move_all(arr)
             time.sleep(1)
-        else:
-            init(sizemap)
+        # else:
+        #     init(sizemap)
 
 
 threading.Thread(target=update_map).start()
+
 
 while True:
     if players:
@@ -143,7 +158,5 @@ while True:
                 players[i].conn.send(str(res).encode())
                 #time.sleep(0.5)
                 #print(arr)
-            except Exception:
-                players[i].conn.close()
-                players.pop(i)
-                print(players)
+            except Exception as e:
+                remove_player(i)
