@@ -20,10 +20,10 @@ class Example(QWidget):
         qpb_down = QPushButton(self)
         qpb_left = QPushButton(self)
 
-        qpb_up.move(60, 200)
-        qpb_right.move(160, 250)
-        qpb_down.move(60, 300)
-        qpb_left.move(10, 250)
+        qpb_up.move(170, 400)
+        qpb_right.move(240, 450)
+        qpb_down.move(170, 500)
+        qpb_left.move(100, 450)
         self.lbl.move(60, 40)
 
         qpb_up.clicked.connect(self.move_up)
@@ -31,7 +31,7 @@ class Example(QWidget):
         qpb_left.clicked.connect(self.move_left)
         qpb_right.clicked.connect(self.move_right)
 
-        self.setGeometry(300, 300, 380, 370)
+        self.setGeometry(200, 100, 480, 770)
         self.setWindowTitle('OneMore')
         self.show()
 
@@ -49,7 +49,7 @@ class Example(QWidget):
         def show_map():
             while True:
                 send_command("show_map")
-                time.sleep(1)
+                time.sleep(0.3)
 
         threading.Thread(target=show_map).start()
         # while True:
@@ -74,8 +74,30 @@ class Example(QWidget):
 
 
 if __name__ == '__main__':
-    s = socket.socket(socket.AF_INET)
-    s.connect(("127.0.0.1", 6001))
+    #s = socket.socket(socket.AF_INET)
+    #s.connect(("127.0.0.1", 6001))
+
+    HOST = '127.0.0.1'  # The remote host
+    PORT = 50007  # The same port as used by the server
+    s = None
+    for res in socket.getaddrinfo(HOST, PORT, socket.AF_UNSPEC, socket.SOCK_STREAM):
+        af, socktype, proto, canonname, sa = res
+        try:
+            s = socket.socket(af, socktype, proto)
+        except socket.error as msg:
+            s = None
+            continue
+        try:
+            s.connect(sa)
+        except socket.error as msg:
+            s.close()
+            s = None
+            continue
+        break
+    if s is None:
+        print('could not open socket')
+        sys.exit(1)
+
     app = QApplication(sys.argv)
     ex = Example()
     sys.exit(app.exec_())
