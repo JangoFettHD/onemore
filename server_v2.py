@@ -11,23 +11,28 @@ arr = []
 class player():
     conn = ""
     id = ""
+    nickname = ""
     positiony = 0
     positionx = 0
     direction = 1
     claimed_dots = []
+    live = 1  # 1-жив
 
-    def __init__(self, conn, id, positionx, positiony, direction, claimed_dots):
+    def __init__(self, conn, id, nickname, positionx, positiony, direction, claimed_dots, live):
         self.conn = conn
         self.id = id
+        self.nickname = nickname
         self.positiony = positionx
         self.positionx = positiony
         self.direction = direction
         self.claimed_dots = claimed_dots
+        self.live = live
 
     def __str__(self):
-        return "conn: {4}, id: {0}, x: {1}, y: {2}, dir: {3}, cm {5}".format(self.id, self.positiony, self.positionx,
-                                                                             self.direction, self.conn,
-                                                                             self.claimed_dots)
+        return "conn: {4}, id: {0}, x: {1}, y: {2}, dir: {3}, cm {5}, live {6}".format(self.id, self.positiony,
+                                                                                       self.positionx,
+                                                                                       self.direction, self.conn,
+                                                                                       self.claimed_dots, self.live)
 
 
 def init(size_map):
@@ -43,6 +48,12 @@ HOST = "0.0.0.0"  # Symbolic name meaning all available interfaces
 PORT = 50007  # Arbitrary non-privileged port
 
 players = []
+
+
+def getIndex(id):
+    for i in range(len(players)):
+        if id == players[i].id:
+            return i
 
 
 def show_map(arr):
@@ -68,9 +79,20 @@ def move(arr, player):
         player.positiony += 1
         # print("right")
     # print(player.positionx, player.positiony)
-    arr[player.positionx][player.positiony] = player.id
-    if [player.positionx, player.positiony] not in player.claimed_dots:
+
+    for i in range(len(players)):
+        print("i", i)
+        if players[i].id != player.id:
+            print(players[i].id, player.id, i)
+            if [player.positionx, player.positiony] in players[i].claimed_dots:
+                print("OWW")
+                player.live = 0
+                print("boom", players[i].id, player.id)
+                break
+
+    if [player.positionx, player.positiony] not in player.claimed_dots and player.live == 1:
         player.claimed_dots.append([player.positionx, player.positiony])
+        arr[player.positionx][player.positiony] = player.id
 
 
 def move_all(arr):
@@ -107,37 +129,55 @@ threading.Thread(target=update_map).start()
 
 def manipulation_with_connected_player(i):
     while True:
-        try:
-            data = ((players[i].conn.recv(1024)).decode()).split()
-            data1 = data[1:]
-            res = show_map(arr)
-            if len(data) > 0:
-                try:
-                    if data[0] == "get_id":  ##@TODO
-                        pass
-                        # res=addr ##@TODO
-                    if data[0] == "show_map":
-                        res = show_map(arr)
-                        #print("show map for", players[i].id)
-                    if data[0] == "move":
-                        players[i].direction = int(data[1])
-                        print(str(players[0]))
-                        # move(arr, players[0])
-                except Exception as e:
-                    res = e
-            # move_all(arr)
-            # res = show_map(arr)
-            players[i].conn.send(str(res).encode())
-            # time.sleep(0.5)
-            # print(arr)
-        except Exception as e:
+        if players[i].live == 0:
             remove_player(i)
+            break
+        else:  # @TODO переделать
+            try:
+                data = ((players[i].conn.recv(1024)).decode()).split()
+                data1 = data[1:]
+                res = show_map(arr)
+                if len(data) > 0:
+                    try:
+                        if data[0] == "show_map":
+                            res = show_map(arr)
+                            # print("show map for", players[i].id)
+                        if data[0] == "move":
+                            players[i].direction = int(data[1])
+                            print(str(players[0]))
+                            # move(arr, players[0])
+                    except Exception as e:
+                        res = e
+                # move_all(arr)
+                # res = show_map(arr)
+                players[i].conn.send(str(res).encode())
+                # time.sleep(0.5)
+                # print(arr)
+            except Exception as e:
+                remove_player(i)
+                threading.Thread._stop()
 
 
-# while True:
+# whie True:
 #     if players:
 #         for i in range(len(players)):
 #             threading.Thread(target=manipulation_with_connected_player, args=i).start()
+
+def generate_id():
+    a = int(random.uniform(1, 9))
+
+    ex_ids = []
+    while a not in ex_ids:
+        if players:
+            for i in range(len(players)):
+                ex_ids.append(players[i].id)
+
+        if a not in ex_ids:
+            print(ex_ids)
+            return a
+    print(ex_ids)
+    return -1
+
 
 def get_connections():
     while True:
@@ -164,9 +204,10 @@ def get_connections():
         conn, addr = s.accept()
         conn.settimeout(3)
         print('Connected by', addr)
-        players.append(
-            player(conn, len(players) + 1, int(random.uniform(0, len(arr))), int(random.uniform(0, len(arr))), 1, []))
-        threading.Thread(target=manipulation_with_connected_player, args=[len(players)-1]).start()
+        temp_player = player(conn, generate_id(), "nickname", int(random.uniform(0, len(arr))),
+                             int(random.uniform(0, len(arr))), int(random.uniform(-1, 2)), [], 1)
+        players.append(temp_player)
+        threading.Thread(target=manipulation_with_connected_player, args=[getIndex(temp_player.id)]).start()
         # players.append(conn)
         # move(arr, players[len(players)-1])
         print(players)
