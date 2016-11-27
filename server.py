@@ -90,6 +90,8 @@ while True:
     res = show_map(arr)
     if len(data) > 0:
         try:
+            if data[0] == "get_id": ##@TODO
+                res=addr ##@TODO
             if data[0] == "show_map":
                 res = show_map(arr)
             if data[0] == "move":
