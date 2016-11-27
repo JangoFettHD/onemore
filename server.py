@@ -33,7 +33,7 @@ class player():
         return "{0}, x: {1}, y: {2}, dir: {3}".format(self.id, self.positionx, self.positiony, self.direction)
 
 
-players.append(player("1", int(random.uniform(0, len(arr))), int(random.uniform(0, len(arr))), 1))
+
 
 
 def init(size_map):
@@ -43,6 +43,7 @@ def init(size_map):
 
 
 init(10)
+players.append(player("1", int(random.uniform(0, len(arr))), int(random.uniform(0, len(arr))), 1))
 print(arr)
 
 
