@@ -48,6 +48,7 @@ class Example(QWidget):
 
         def show_map():
             while True:
+                print("1")
                 send_command("show_map")
                 time.sleep(0.3)
 
