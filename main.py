@@ -44,7 +44,7 @@ class Example(QWidget):
 
         def send_command(command):
             s.send(command.encode())
-            self.onChanged((s.recv(2048)).decode())
+            self.onChanged((s.recv(5000)).decode())
 
         def show_map():
             while True:

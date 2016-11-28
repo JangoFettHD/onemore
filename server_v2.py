@@ -6,8 +6,9 @@ import sys
 
 # from shapely.geometry import Point, Polygon
 
-sizemap = 15
+sizemap = 20
 arr = []
+free_space='_'
 
 
 class player():
@@ -40,7 +41,7 @@ class player():
 def init(size_map):
     global arr
     n = size_map
-    arr = [['_' for _ in range(0, n)] for _ in range(0, n)]
+    arr = [[free_space for _ in range(0, n)] for _ in range(0, n)]
 
 
 init(sizemap)
@@ -62,9 +63,10 @@ def show_map(arr):
     str_arr = ""
     for i in range(len(arr)):
         for j in range(len(arr)):
-            if [i,j] in get_players_pos(players):
-                str_arr+=('(' + str(arr[i][j]) + ')')
-            else: str_arr += ('[' + str(arr[i][j]) + ']')
+            if [i, j] in get_players_pos(players):
+                str_arr += ('(' + str(arr[i][j]) + ')')
+            else:
+                str_arr += ('[' + str(arr[i][j]) + ']')
         str_arr += "\n"
     return str_arr
 
@@ -76,13 +78,28 @@ def get_players_pos(players):
     return pl
 
 
-def flood_fill(arr, player_id, i, j):
+# def flood_fill(arr, player_id, i, j):
+#     if arr[i][j] != player_id:
+#         arr[i][j] = player_id
+#         if i != 0: flood_fill(arr, player_id, i - 1, j)
+#         if j != 0: flood_fill(arr, player_id, i, j - 1)
+#         if i != (len(arr) - 1): flood_fill(arr, player_id, i + 1, j)
+#         if j != (len(arr[0]) - 1): flood_fill(arr, player_id, i, j + 1)
+
+
+def flood_fill(arr, player, i, j):
+    player_id=player.id
     if arr[i][j] != player_id:
         arr[i][j] = player_id
-        if i != 0: flood_fill(arr, player_id, i - 1, j)
-        if j != 0: flood_fill(arr, player_id, i, j - 1)
-        if i != (len(arr) - 1): flood_fill(arr, player_id, i + 1, j)
-        if j != (len(arr[0]) - 1): flood_fill(arr, player_id, i, j + 1)
+        if i != 0:
+            flood_fill(arr, player, i - 1, j)
+        if j != 0:
+            flood_fill(arr, player, i, j - 1)
+        if i != (len(arr) - 1):
+            flood_fill(arr, player, i + 1, j)
+        if j != (len(arr[0]) - 1):
+            flood_fill(arr, player, i, j + 1)
+        player.claimed_dots.append([i,j])
 
 
 # def inPolygon(x, y, xp, yp):
@@ -103,39 +120,39 @@ def flood_fill(arr, player_id, i, j):
 #     return poly.contains(Point(x,y))
 
 def inPolygon(x, y, playerId):
-    up=0
-    right=0
-    left=0
-    down=0
+    up = 0
+    right = 0
+    left = 0
+    down = 0
     for i in range(0, len(arr)):
         for j in range(y, len(arr)):
             if arr[x][j] == playerId:
-                right=1
+                right = 1
                 break
-            # --->
+                # --->
 
     for i in range(x, len(arr)):
         for j in range(0, len(arr)):
-            if arr[i][y] ==playerId:
-                down=1
+            if arr[i][y] == playerId:
+                down = 1
                 break
-            # down
+                # down
 
     for i in range(0, x + 1):
         for j in range(0, y + 1):
             if arr[x][j] == playerId:
-                left=1
+                left = 1
                 break
-            # left
+                # left
 
     for i in range(0, x + 1):
         for j in range(0, x + 1):
             if arr[i][y] == playerId:
-                up=1
+                up = 1
                 break
-            # up
-    print(up,down,left,right)
-    return (up+down+left+right)
+                # up
+    print(up, down, left, right)
+    return (up + down + left + right)
 
 
 '''
@@ -188,8 +205,8 @@ def move(arr, player):
             print(arrX, arrY)
             for i in range(len(arr)):
                 for j in range(len(arr[0])):
-                    if inPolygon(i, j, player.id)>3:
-                        flood_fill(arr, player.id, i, j)
+                    if inPolygon(i, j, player.id) > 3:
+                        flood_fill(arr, player, i, j)
 
 
 def move_all(arr):
@@ -204,7 +221,7 @@ def remove_player(index):
     for i in range(len(arr)):  # @TODO проверить на -1
         for j in range(len(arr)):
             if arr[i][j] == players[index].id:
-                arr[i][j] = 0
+                arr[i][j] = free_space
                 # print(players[index].claimed_dots[0][i][0],players[index].claimed_dots[i][0])
                 # arr[players[index].claimed_dots[i][0]][players[index].claimed_dots[i][1]] = 0
     try:
