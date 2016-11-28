@@ -31,3 +31,5 @@ threading.Thread(target=show_map).start()
 while True:
     s.send(input("Enter \"move 1\"").encode())
     print((s.recv(1024)).decode())
+
+
