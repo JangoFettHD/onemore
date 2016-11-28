@@ -151,7 +151,7 @@ def inPolygon(x, y, playerId):
                 up = 1
                 break
                 # up
-    print(up, down, left, right)
+    #print(up, down, left, right)
     return (up + down + left + right)
 
 
@@ -207,6 +207,7 @@ def move(arr, player):
                 for j in range(len(arr[0])):
                     if inPolygon(i, j, player.id) > 3:
                         flood_fill(arr, player, i, j)
+                        print("IM THERE!",i,j)
 
 
 def move_all(arr):
@@ -258,6 +259,24 @@ def update_map():
 
 threading.Thread(target=update_map).start()
 
+
+def getClaimedDots(players):
+    claimedDots=[]
+    for i in range(len(players)):
+        claimedDots.append([players[i].positionx,players[i].positiony])
+    return claimedDots
+
+
+def giveInitPlayerPosition(arr, players):
+    x = -1
+    y = -1
+
+    while not (0 < x < (len(arr) - 1) > y > 0) and not ([x, y] in getClaimedDots(players)):
+        x = int(random.uniform(1, (len(arr)-2)))
+        y = int(random.uniform(1, (len(arr)-2)))
+        print(x, y)
+
+    return [x, y]
 
 def manipulation_with_connected_player(i):
     while True:
@@ -341,12 +360,14 @@ def get_connections():
         conn, addr = s.accept()
         conn.settimeout(3)
         print('Connected by', addr)
-        temp_player = player(conn, generate_id(), "nickname", int(random.uniform(0, len(arr))),
-                             int(random.uniform(0, len(arr))), int(random.uniform(-1, 2)), [], 1)
+        temp_coords=giveInitPlayerPosition(arr,players)
+        temp_player = player(conn, generate_id(), "nickname", temp_coords[0],
+                             temp_coords[1], int(random.uniform(-1.4, 2.4)), [], 1)
         players.append(temp_player)
         threading.Thread(target=manipulation_with_connected_player, args=[getIndex(temp_player.id)]).start()
         # players.append(conn)
         # move(arr, players[len(players)-1])
+        print("NEW PLAYER",str(temp_player))
         print(players)
 
 
