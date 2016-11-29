@@ -50,8 +50,8 @@ class Example(QWidget):
                     if [i, j] in [dict["players_positions"][i] for i in range(0, len(dict["players_positions"]))]:
                         str_arr += ('(' + str(dict["map"][i][j]) + ')')
                     else:
-                        if [i, j] in dict["claimed_dots"]:
-                            str_arr += (':' + str(dict["map"][i][j]) + ':')
+                        if [i, j] in dict["all_dots"]:
+                            str_arr += (':' + str(dict["all_dots"][len(dict["all_dots"])-1]) + ':')
                         else:
                             str_arr += ('[' + str(dict["map"][i][j]) + ']')
                 str_arr += "\n"

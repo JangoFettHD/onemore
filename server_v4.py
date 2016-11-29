@@ -47,9 +47,16 @@ PORT = 50007
 
 
 def map_to_json():
+    all_dots = []
+    for z in range(0, len(players)):
+        for j in range(0, len(players[z].claimed_dots)):
+            all_dots.append(players[z].claimed_dots[j])
+            all_dots.append(players[z].id)
     return {"map": arrMap, "players_positions": [players[i].position for i in range(0, len(players))],
-            "claimed_dots": [players[z].claimed_dots[j] for z in range(0, len(players)) for j in
-                             range(0, len(players[z].claimed_dots))]}
+            "all_dots": all_dots}
+    # return {"map": arrMap, "players_positions": [players[i].position for i in range(0, len(players))],
+    #         "claimed_dots": [players[z].claimed_dots[j] for z in range(0, len(players)) for j in
+    #                          range(0, len(players[z].claimed_dots))]}
 
 
 def show_map():  # delete in release
@@ -58,6 +65,7 @@ def show_map():  # delete in release
     for z in range(0, len(players)):
         for j in range(0, len(players[z].claimed_dots)):
             claimed_dots.append(players[z].claimed_dots[j])
+        claimed_dots.append(players[z].id)
     print("cm", claimed_dots)
     for i in range(sizeMap):
         for j in range(sizeMap):
@@ -65,7 +73,7 @@ def show_map():  # delete in release
                 str_arr += ('(' + str(arrMap[i][j]) + ')')
             else:
                 if [i, j] in claimed_dots:
-                    str_arr += ('{' + str(arrMap[i][j]) + '}')
+                    str_arr += ('{' + str(claimed_dots[len(claimed_dots)-1]) + '}')
                 else:
                     str_arr += ('[' + str(arrMap[i][j]) + ']')
         str_arr += "\n"
@@ -144,7 +152,7 @@ def move_player(i):
                     live = 0
             if live != 0:
                 players[i].temp_dots.append([x + 1, y])
-                if [x, y - 1] in claimed_dots:
+                if [x, y + 1] in claimed_dots:
                     players[i].claimed_dots += temp_dots
                     players[i].temp_dots = []
                 players[i].position[0] += 1
