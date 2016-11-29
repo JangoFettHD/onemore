@@ -152,7 +152,7 @@ def move_player(i):
                     live = 0
             if live != 0:
                 players[i].temp_dots.append([x + 1, y])
-                if [x, y + 1] in claimed_dots:
+                if [x + 1, y] in claimed_dots:
                     players[i].claimed_dots += temp_dots
                     players[i].temp_dots = []
                 players[i].position[0] += 1
