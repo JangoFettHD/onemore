@@ -4,7 +4,7 @@ from PyQt5.QtWidgets import (QWidget, QLabel,
 import socket
 import time
 import threading
-
+import json
 
 class Example(QWidget):
 
@@ -39,16 +39,36 @@ class Example(QWidget):
 
         #s = socket.socket(socket.AF_INET)
         # s.connect(("127.0.0.1", 6001))
-        s.send('show_map'.encode())  # str->byte
-        print((s.recv(1024)).decode())  # byte->str
+        #s.send('getData'.encode())  # str->byte
+        #print((s.recv(1024)).decode())  # byte->str
+
+        def dict_to_str(dict):  # delete in release
+            str_arr = ""
+            for i in range(len(dict["map"])):
+                for j in range(len(dict["map"])):
+                    if [i, j] in [dict["players_positions"][i] for i in range(0, len(dict["players_positions"]))]:
+                        str_arr += ('(' + str(dict["map"][i][j]) + ')')
+                    else:
+                        if [i, j] in dict["claimed_dots"]:
+                            str_arr += (':' + str(dict["map"][i][j]) + ':')
+                        else:
+                            str_arr += ('[' + str(dict["map"][i][j]) + ']')
+                str_arr += "\n"
+            return str_arr
 
         def send_command(command):
             s.send(command.encode())
-            self.onChanged((s.recv(5000)).decode())
+            in1=(s.recv(50000)).decode().replace("\'","\"").split("}")[0]+"}"
+            print(in1,type(in1))
+            # json1_file = open(in1)
+            # json1_str = in1.read()
+            json1_data = json.loads(in1)
+            # content=json.loads(in1)
+            self.onChanged(dict_to_str(json1_data))
 
         def show_map():
             while True:
-                send_command("show_map")
+                send_command("getData")
                 time.sleep(0.3)
 
         threading.Thread(target=show_map).start()
@@ -77,7 +97,7 @@ if __name__ == '__main__':
     #s = socket.socket(socket.AF_INET)
     #s.connect(("127.0.0.1", 6001))
 
-    HOST = 'jangofetthd.me'  # The remote host
+    HOST = '127.0.0.1'  # The remote host
     PORT = 50007  # The same port as used by the server
     s = None
     for res in socket.getaddrinfo(HOST, PORT, socket.AF_UNSPEC, socket.SOCK_STREAM):
