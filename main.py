@@ -58,8 +58,9 @@ class Example(QWidget):
             return str_arr
 
         def send_command(command):
-            s.send(command.encode())
-            in1=(s.recv(50000)).decode().replace("\'","\"").split("}")[0]+"}"
+            if command!="None":
+                s.send(command.encode())
+            in1=(s.recv(10000)).decode().replace("\'","\"").split("}")[0]+"}"
             print(in1,type(in1))
             # json1_file = open(in1)
             # json1_str = in1.read()
@@ -70,7 +71,7 @@ class Example(QWidget):
         def show_map():
             while True:
                 send_command("getData")
-                time.sleep(0.3)
+                time.sleep(0.2)
 
         threading.Thread(target=show_map).start()
         # while True:

@@ -44,17 +44,6 @@ HOST = "0.0.0.0"
 PORT = 50007
 
 
-# temp_player = Player(0, 1, "nickname", [5, 5], int(random.uniform(-1.4, 2.4)),
-#                      [[5, 5], [6, 5], [5, 6], [6, 6], [4, 5], [5, 4], [4, 4], [4, 6], [6, 4]], [], 1)
-# players.append(temp_player)
-# temp_player = Player(0, 2, "nickname", [2, 2], int(random.uniform(-1.4, 2.4)), [], [], 1)
-# players.append(temp_player)
-# temp_player = Player(0, 3, "nickname", [8, 7], int(random.uniform(-1.4, 2.4)), [], [], 1)
-# players.append(temp_player)
-# temp_player = Player(0, 4, "nickname", [8, 5], int(random.uniform(-1.4, 2.4)), [], [], 1)
-# players.append(temp_player)
-# temp_player = Player(0, 5, "nickname", [10, 1], int(random.uniform(-1.4, 2.4)), [], [], 1)
-# players.append(temp_player)
 
 
 def map_to_json():
@@ -212,7 +201,8 @@ def update_map():
                 if players[i].live == 1:
                     move_player(i)
             print(show_map())
-            time.sleep(0.7)
+            print(arrMap)
+            time.sleep(0.6)
             # print(map_to_json())
 
 
@@ -255,6 +245,7 @@ def manipulation_with_connected_player(i):
                     if data[0] == "getData":
                         print("getData")
                         res = map_to_json()
+                        players[i].conn.send(str(res).encode())
                         # if data[0] == "getplayerspos":
                         #     res = get_players_pos(players)
                         # print("show map for", players[i].id)
@@ -270,8 +261,9 @@ def manipulation_with_connected_player(i):
                     res = e
             # move_all(arr)
             # res = show_map(arr)
-            players[i].conn.send(str(res).encode())
+            #players[i].conn.send(str(res).encode())
             # time.sleep(0.5)
+            #time.sleep(0.1)
             # print(arr)
         except Exception as e:
             delete_player(i)
