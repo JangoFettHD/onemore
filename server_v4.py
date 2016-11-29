@@ -239,7 +239,7 @@ def give_init_player_position():
         print("gIpp", x, y)
 
     return [x, y]
-
+#@TODO сделать отключение игрока и удаление players
 
 def manipulation_with_connected_player(i):
     print("tt")
