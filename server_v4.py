@@ -35,7 +35,7 @@ class Player:
                                                                                     self.temp_dots, self.live)
 
 
-sizeMap = 20  # размер карты X*X
+sizeMap = 30  # размер карты X*X
 free_space = '_'  # символ для обозначения пустоты
 arrMap = [[free_space for _ in range(0, sizeMap)] for _ in range(0, sizeMap)]  # сама карта
 players = []  # массив игроков
@@ -43,17 +43,18 @@ players = []  # массив игроков
 HOST = "0.0.0.0"
 PORT = 50007
 
-temp_player = Player(0, 1, "nickname", [5, 5], int(random.uniform(-1.4, 2.4)),
-                     [[5, 5], [6, 5], [5, 6], [6, 6], [4, 5], [5, 4], [4, 4], [4, 6], [6, 4]], [], 1)
-players.append(temp_player)
-temp_player = Player(0, 2, "nickname", [2, 2], int(random.uniform(-1.4, 2.4)), [], [], 1)
-players.append(temp_player)
-temp_player = Player(0, 3, "nickname", [8, 7], int(random.uniform(-1.4, 2.4)), [], [], 1)
-players.append(temp_player)
-temp_player = Player(0, 4, "nickname", [8, 5], int(random.uniform(-1.4, 2.4)), [], [], 1)
-players.append(temp_player)
-temp_player = Player(0, 5, "nickname", [10, 1], int(random.uniform(-1.4, 2.4)), [], [], 1)
-players.append(temp_player)
+
+# temp_player = Player(0, 1, "nickname", [5, 5], int(random.uniform(-1.4, 2.4)),
+#                      [[5, 5], [6, 5], [5, 6], [6, 6], [4, 5], [5, 4], [4, 4], [4, 6], [6, 4]], [], 1)
+# players.append(temp_player)
+# temp_player = Player(0, 2, "nickname", [2, 2], int(random.uniform(-1.4, 2.4)), [], [], 1)
+# players.append(temp_player)
+# temp_player = Player(0, 3, "nickname", [8, 7], int(random.uniform(-1.4, 2.4)), [], [], 1)
+# players.append(temp_player)
+# temp_player = Player(0, 4, "nickname", [8, 5], int(random.uniform(-1.4, 2.4)), [], [], 1)
+# players.append(temp_player)
+# temp_player = Player(0, 5, "nickname", [10, 1], int(random.uniform(-1.4, 2.4)), [], [], 1)
+# players.append(temp_player)
 
 
 def map_to_json():
@@ -111,12 +112,12 @@ def move_player(i):
             all_temp_dots.append([players[z].temp_dots[j], z])
 
     claimed_dots = []
-    print(len(players[i].claimed_dots))
+    print("len(cd)", len(players[i].claimed_dots))
     for z in range(len(players[i].claimed_dots)):
-        print(z, i, players[i].claimed_dots[z])
+        # print(z, i, players[i].claimed_dots[z])
         claimed_dots.append([players[i].claimed_dots[z][0], players[i].claimed_dots[z][1]])
     temp_dots = []
-    len(players[i].temp_dots)
+    print("len(td)", len(players[i].temp_dots))
     for z in range(len(players[i].temp_dots)):
         temp_dots.append([players[i].temp_dots[z][0], players[i].temp_dots[z][1]])
 
@@ -124,7 +125,8 @@ def move_player(i):
     y = players[i].position[1]
     dir = players[i].direction
     live = 1
-    print("td", all_temp_dots)
+    print("all_td", all_temp_dots)
+
     if dir == 1:
         if x > 0:
             for k in range(len(all_temp_dots)):
@@ -134,7 +136,7 @@ def move_player(i):
                     live = 0
             if live != 0:
                 players[i].temp_dots.append([x - 1, y])
-                if [x, y] in claimed_dots:
+                if [x - 1, y] in claimed_dots:
                     players[i].claimed_dots += temp_dots
                     players[i].temp_dots = []
                 players[i].position[0] -= 1
@@ -152,8 +154,8 @@ def move_player(i):
                     print("die", k)
                     live = 0
             if live != 0:
-                players[i].temp_dots.append([x, y - 1])
-                if [x, y] in claimed_dots:
+                players[i].temp_dots.append([x + 1, y])
+                if [x, y - 1] in claimed_dots:
                     players[i].claimed_dots += temp_dots
                     players[i].temp_dots = []
                 players[i].position[0] += 1
@@ -172,7 +174,7 @@ def move_player(i):
                     live = 0
             if live != 0:
                 players[i].temp_dots.append([x, y - 1])
-                if [x, y] in claimed_dots:
+                if [x, y - 1] in claimed_dots:
                     players[i].claimed_dots += temp_dots
                     players[i].temp_dots = []
                 players[i].position[1] -= 1
@@ -191,7 +193,7 @@ def move_player(i):
                     live = 0
             if live != 0:
                 players[i].temp_dots.append([x, y + 1])
-                if [x, y] in claimed_dots:
+                if [x, y + 1] in claimed_dots:
                     players[i].claimed_dots += temp_dots
                     players[i].temp_dots = []
                 players[i].position[1] += 1
@@ -217,6 +219,30 @@ def update_map():
 threading.Thread(target=update_map).start()
 
 
+def get_notfree_dots():
+    all_temp_dots = []
+    for z in range(0, len(players)):
+        for j in range(0, len(players[z].temp_dots)):
+            all_temp_dots.append([players[z].temp_dots[j], z])
+    all_claimed_dots = []
+    for z in range(0, len(players)):
+        for j in range(0, len(players[z].claimed_dots)):
+            all_claimed_dots.append([players[z].claimed_dots[j], z])
+    return all_claimed_dots + all_temp_dots
+
+
+def give_init_player_position():
+    x = -1
+    y = -1
+
+    while not (0 < x < (len(arrMap) - 1) > y > 0) and not ([x, y] in get_notfree_dots()):
+        x = int(random.uniform(1, (len(arrMap) - 2)))
+        y = int(random.uniform(1, (len(arrMap) - 2)))
+        print("gIpp", x, y)
+
+    return [x, y]
+
+
 def manipulation_with_connected_player(i):
     print("tt")
     while True:
@@ -227,13 +253,13 @@ def manipulation_with_connected_player(i):
             if len(data) > 0:
                 try:
                     if data[0] == "getData":
-                        print("getDAAA")
+                        print("getData")
                         res = map_to_json()
                         # if data[0] == "getplayerspos":
                         #     res = get_players_pos(players)
                         # print("show map for", players[i].id)
                     if data[0] == "move":
-                        print("MOVE")
+                        print("move")
                         if not (players[i].direction == 0 and int(data[1]) == 2 or players[
                             i].direction == 2 and int(data[1]) == 0 or players[i].direction == -1 and int(
                             data[1]) == 1 or players[i].direction == 1 and int(data[1]) == -1):
@@ -258,13 +284,13 @@ def generate_id():
     if players:
         for i in range(len(players)):
             ex_ids.append(players[i].id)
-    print(ex_ids)
+    # print(ex_ids)
     a = [1, 2, 3, 4, 5, 6, 7, 8, 9]
     for x in ex_ids:
         a.remove(x)
-    print(a)
+    # print(a)
     z = a[int(random.uniform(0, len(a)))]
-    print(z)
+    print("NEW ID is: ", z)
     return z
 
 
@@ -300,15 +326,28 @@ def get_connections():
         conn.settimeout(3)
         print('Connected by', addr)
         print(players)
-        temp_coords = [7, 7]
+
+        temp_coords = give_init_player_position()
         temp_player = Player(conn, generate_id(), "nickname",
                              temp_coords, int(random.uniform(-1.4, 2.4)),
-                             [[7, 7], [8, 7], [7, 8], [8, 8], [6, 8], [8, 6], [7, 6], [6, 7], [6, 6]], [], 1)
+                             [
+                                 temp_coords,
+                                 [(temp_coords[0] + 1), (temp_coords[1] + 1)],
+                                 [(temp_coords[0]), (temp_coords[1] + 1)],
+                                 [(temp_coords[0] + 1), (temp_coords[1])],
+                                 [(temp_coords[0] - 1), (temp_coords[1] - 1)],
+                                 [(temp_coords[0]), (temp_coords[1])-1],
+                                 [(temp_coords[0])-1, (temp_coords[1])],
+                                 [(temp_coords[0] + 1), (temp_coords[1] - 1)],
+                                 [(temp_coords[0] - 1), (temp_coords[1] + 1)]
+                             ],
+                             [],
+                             1)
         players.append(temp_player)
+        print("NEW PLAYER", str(temp_player))
         threading.Thread(target=manipulation_with_connected_player, args=[getIndex(temp_player.id)]).start()
         # players.append(conn)
         # move(arr, players[len(players)-1])
-        print("NEW PLAYER", str(temp_player))
 
         print(players)
 

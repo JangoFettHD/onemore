@@ -6,6 +6,7 @@ import time
 import threading
 import json
 
+#compitable with server_version==4
 class Example(QWidget):
 
     def __init__(self):
@@ -20,10 +21,10 @@ class Example(QWidget):
         qpb_down = QPushButton(self)
         qpb_left = QPushButton(self)
 
-        qpb_up.move(170, 400)
-        qpb_right.move(240, 450)
-        qpb_down.move(170, 500)
-        qpb_left.move(100, 450)
+        qpb_up.move(250, 500)
+        qpb_right.move(300, 550)
+        qpb_down.move(250, 600)
+        qpb_left.move(200, 550)
         self.lbl.move(60, 40)
 
         qpb_up.clicked.connect(self.move_up)
@@ -31,7 +32,7 @@ class Example(QWidget):
         qpb_left.clicked.connect(self.move_left)
         qpb_right.clicked.connect(self.move_right)
 
-        self.setGeometry(200, 100, 480, 770)
+        self.setGeometry(200, 100, 530, 670)
         self.setWindowTitle('OneMore')
         self.show()
 
