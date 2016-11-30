@@ -1,3 +1,4 @@
+import asyncore
 import socket
 import random
 import threading
@@ -256,55 +257,64 @@ def generate_init_base(temp_coords, z):
             arrBaseDots.append([i, j])
     return arrBaseDots
 
+class Server(asyncore.dispatcher):
 
-def get_connections():
-    while True:
-        s = None
-        for res in socket.getaddrinfo(HOST, PORT, socket.AF_UNSPEC,
-                                      socket.SOCK_STREAM, 0, socket.AI_PASSIVE):
-            af, socktype, proto, canonname, sa = res
-            try:
-                s = socket.socket(af, socktype, proto)
-            except socket.error as msg:
-                s = None
-                continue
-            try:
-                s.bind(sa)
-                s.listen(1)
-            except socket.error as msg:
-                s.close()
-                s = None
-                continue
-            break
-        if s is None:
-            print('could not open socket')
-            sys.exit(1)
-        conn, addr = s.accept()
-        conn.settimeout(3)
-        print("[  \n=> Generate a new player:", '\n   Connected by', addr, )
-        print("   players: ", players)
+    def __init__(self, host="localhost", port=1566):
+        asyncore.dispatcher.__init__(self)
+        self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.set_reuse_addr()
+        self.bind((host, port))
+        self.listen(1)
+        self.handler = None
+        print("Server running on {}:{}".format(host, port))
 
-        nick="Unknown"
+    def handle_accept(self):
+        pair = self.accept()
+        if pair is None:
+            return
+        else:
+            sock, addr = pair
+            print('Incoming connection from %s' % repr(addr))
+            self.handler = get_connections(str(addr), sock)
+
+    @staticmethod
+    def main(host="localhost", port=1566):
+        server = Server(host, port)
         try:
-            data = ((conn.recv(200)).decode()).split()
-            if data[1] != "Unknown":
-                nick=data[1]
-        except Exception as e:
-            print(">> EXCEPTION: ", e)
+            asyncore.loop(timeout=2)
+        except KeyboardInterrupt as e:
+            print("Ctrl+C pressed. Shutting down.")
+            server.close()
 
-        print("   Nickname=",nick)
-        temp_coords = give_init_player_position()
-        temp_id = generate_id()
-        temp_player = Player(conn, temp_id, nick,
-                             [temp_coords[0], temp_coords[1]], int(random.uniform(-1.4, 2.4)),
-                             generate_init_base(temp_coords, temp_id),
-                             [],
-                             1)
-        print("   NEW PLAYER is: ", str(temp_player))
-        players.append(temp_player)
-        threading.Thread(target=manipulation_with_connected_player, args=[getIndex(temp_player.id)]).start()
+def get_connections(addr,sock):
 
-        print("  ", players, "\n]")
+    conn=sock
+    conn.settimeout(3)
+    print("[  \n=> Generate a new player:", '\n   Connected by', addr, )
+    print("   players: ", players)
+
+    nick="Unknown"
+    try:
+        data = ((conn.recv(200)).decode()).split()
+        if data[1] != "Unknown":
+            nick=data[1]
+    except Exception as e:
+        print(">> EXCEPTION: ", e)
+
+    print("   Nickname=",nick)
+    temp_coords = give_init_player_position()
+    temp_id = generate_id()
+    temp_player = Player(conn, temp_id, nick,
+                         [temp_coords[0], temp_coords[1]], int(random.uniform(-1.4, 2.4)),
+                         generate_init_base(temp_coords, temp_id),
+                         [],
+                         1)
+    print("   NEW PLAYER is: ", str(temp_player))
+    players.append(temp_player)
+    threading.Thread(target=manipulation_with_connected_player, args=[getIndex(temp_player.id)]).start()
+
+    print("  ", players, "\n]")
 
 
-threading.Thread(target=get_connections).start()
+# threading.Thread(target=get_connections).start()
+Server.main("0.0.0.0")

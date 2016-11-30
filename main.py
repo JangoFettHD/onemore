@@ -128,8 +128,8 @@ if __name__ == '__main__':
     # s = socket.socket(socket.AF_INET)
     # s.connect(("127.0.0.1", 6001))
 
-    HOST = '127.0.0.1'  # The remote host
-    PORT = 50015  # The same port as used by the server
+    HOST = 'jangofetthd.me'  # The remote host
+    PORT = 1566  # The same port as used by the server
     s = None
     for res in socket.getaddrinfo(HOST, PORT, socket.AF_UNSPEC, socket.SOCK_STREAM):
         af, socktype, proto, canonname, sa = res
