@@ -76,22 +76,26 @@ player must be alive
 
 
 def delete_player(z):
-    print("P{0} ! Player #{0} died!".format(players[z].id))
-    for i in range(len(players[z].claimed_dots)):
-        arrMap[players[z].claimed_dots[i][0]][players[z].claimed_dots[i][1]] = free_space
+    if players[z].live==0:
+        print("P{0} ! Player {1} disconnected".format(players[z].id, players[z].nickname))
+    else:
+        print("P{0} ! Player #{0} died!".format(players[z].id))
+        for i in range(len(players[z].claimed_dots)):
+            arrMap[players[z].claimed_dots[i][0]][players[z].claimed_dots[i][1]] = free_space
 
-    for i in range(len(players[z].temp_dots)):
-        arrMap[players[z].temp_dots[i][0]][players[z].temp_dots[i][1]] = free_space
+        for i in range(len(players[z].temp_dots)):
+            arrMap[players[z].temp_dots[i][0]][players[z].temp_dots[i][1]] = free_space
 
-    # players.pop(z)
-    players[z].claimed_dots = []
-    players[z].temp_dots = []
-    players[z].position = 0
-    players[z].live = 0
-    players[z].id = -1
+        # players.pop(z)
+        players[z].claimed_dots = []
+        players[z].temp_dots = []
+        players[z].position = 0
+        players[z].live = 0
+        players[z].id = -1
+        players[z].direction = -5
 
-    # time.sleep(1)
-    # players[z].conn.close()
+        # time.sleep(1)
+        # players[z].conn.close()
 
 
 def move_player(i):
@@ -280,9 +284,18 @@ def get_connections():
         print("[  \n=> Generate a new player:", '\n   Connected by', addr, )
         print("   players: ", players)
 
+        nick="Unknown"
+        try:
+            data = ((conn.recv(200)).decode()).split()
+            if data[1] != "Unknown":
+                nick=data[1]
+        except Exception as e:
+            print(">> EXCEPTION: ", e)
+
+        print("   Nickname=",nick)
         temp_coords = give_init_player_position()
         temp_id = generate_id()
-        temp_player = Player(conn, temp_id, "nickname",
+        temp_player = Player(conn, temp_id, nick,
                              [temp_coords[0], temp_coords[1]], int(random.uniform(-1.4, 2.4)),
                              generate_init_base(temp_coords, temp_id),
                              [],

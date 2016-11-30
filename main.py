@@ -1,3 +1,4 @@
+import random
 import sys
 from PyQt5.QtWidgets import (QWidget, QLabel,
                              QLineEdit, QApplication, QPushButton)
@@ -6,9 +7,9 @@ import time
 import threading
 import json
 
-#compitable with server_version==4
-class Example(QWidget):
 
+# compitable with server_version==4
+class Example(QWidget):
     def __init__(self):
         super().__init__()
 
@@ -40,13 +41,35 @@ class Example(QWidget):
 
         direction = 0
 
-        #s = socket.socket(socket.AF_INET)
+        # s = socket.socket(socket.AF_INET)
         # s.connect(("127.0.0.1", 6001))
-        #s.send('getData'.encode())  # str->byte
-        #print((s.recv(1024)).decode())  # byte->str
+        # s.send('getData'.encode())  # str->byte
+        # print((s.recv(1024)).decode())  # byte->str
 
-
-        def dict_to_str(dict):  # delete in release
+        def generate_nickname():
+            d = {
+                'part1': [
+                    'Ae',
+                    'Di',
+                    'Mo',
+                    'Ki',
+                    'Ro',
+                    'Fam',
+                    'Mi',
+                    'Jan'],
+                'part2': [
+                    'go',
+                    'dar',
+                    'kil',
+                    'glar',
+                    'tres', ],
+            }
+            return '{0}{1}'.format(d['part1'][int(random.uniform(0,len(d['part1'])))],d['part2'][int(random.uniform(0,len(d['part2'])))])
+        nick=generate_nickname()
+        print(nick)
+        s.send(('nickname '+str(nick)).encode())
+        time.sleep(1)
+        def dict_to_str(dict):
             str_arr = ""
             for i in range(len(dict["map"])):
                 for j in range(len(dict["map"])):
@@ -61,10 +84,10 @@ class Example(QWidget):
             return str_arr
 
         def send_command(command):
-            if command!="None":
+            if command != "None":
                 s.send(command.encode())
-            in1=(s.recv(10000)).decode().replace("\'","\"").split("}")[0]+"}"
-            print(in1,type(in1))
+            in1 = (s.recv(10000)).decode().replace("\'", "\"").split("}")[0] + "}"
+            print(in1, type(in1))
             # json1_file = open(in1)
             # json1_str = in1.read()
             json1_data = json.loads(in1)
@@ -102,8 +125,8 @@ class Example(QWidget):
 
 
 if __name__ == '__main__':
-    #s = socket.socket(socket.AF_INET)
-    #s.connect(("127.0.0.1", 6001))
+    # s = socket.socket(socket.AF_INET)
+    # s.connect(("127.0.0.1", 6001))
 
     HOST = '127.0.0.1'  # The remote host
     PORT = 50015  # The same port as used by the server
