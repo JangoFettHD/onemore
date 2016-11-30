@@ -41,7 +41,7 @@ arrMap = [[free_space for _ in range(0, sizeMap)] for _ in range(0, sizeMap)]  #
 players = []  # массив игроков
 
 HOST = "0.0.0.0"
-PORT = 50010
+PORT = 50015
 
 
 def map_to_json():
