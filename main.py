@@ -16,11 +16,13 @@ class Example(QWidget):
 
     def initUI(self):
         self.lbl = QLabel(self)
+        textview_id = QLabel(self)
         qpb_up = QPushButton(self)
         qpb_right = QPushButton(self)
         qpb_down = QPushButton(self)
         qpb_left = QPushButton(self)
 
+        textview_id.move(264, 554)
         qpb_up.move(250, 500)
         qpb_right.move(300, 550)
         qpb_down.move(250, 600)
@@ -42,6 +44,7 @@ class Example(QWidget):
         # s.connect(("127.0.0.1", 6001))
         #s.send('getData'.encode())  # str->byte
         #print((s.recv(1024)).decode())  # byte->str
+
 
         def dict_to_str(dict):  # delete in release
             str_arr = ""
@@ -67,6 +70,9 @@ class Example(QWidget):
             json1_data = json.loads(in1)
             # content=json.loads(in1)
             self.onChanged(dict_to_str(json1_data))
+            time.sleep(0.1)
+            s.send('getId'.encode())
+            textview_id.setText((s.recv(10)).decode())
 
         def show_map():
             while True:
@@ -99,8 +105,8 @@ if __name__ == '__main__':
     #s = socket.socket(socket.AF_INET)
     #s.connect(("127.0.0.1", 6001))
 
-    HOST = '127.0.0.1'  # The remote host
-    PORT = 50007  # The same port as used by the server
+    HOST = 'jangofetthd.me'  # The remote host
+    PORT = 50009  # The same port as used by the server
     s = None
     for res in socket.getaddrinfo(HOST, PORT, socket.AF_UNSPEC, socket.SOCK_STREAM):
         af, socktype, proto, canonname, sa = res
