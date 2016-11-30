@@ -51,7 +51,7 @@ class Example(QWidget):
                         str_arr += ('(' + str(dict["map"][i][j]) + ')')
                     else:
                         if [i, j] in dict["all_dots"]:
-                            str_arr += (':' + str(dict["all_dots"][len(dict["all_dots"])-1]) + ':')
+                            str_arr += (':' + str(dict["map"][i][j]) + ':')
                         else:
                             str_arr += ('[' + str(dict["map"][i][j]) + ']')
                 str_arr += "\n"
@@ -99,7 +99,7 @@ if __name__ == '__main__':
     #s = socket.socket(socket.AF_INET)
     #s.connect(("127.0.0.1", 6001))
 
-    HOST = 'jangofetthd.me'  # The remote host
+    HOST = '127.0.0.1'  # The remote host
     PORT = 50007  # The same port as used by the server
     s = None
     for res in socket.getaddrinfo(HOST, PORT, socket.AF_UNSPEC, socket.SOCK_STREAM):

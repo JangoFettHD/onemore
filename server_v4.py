@@ -44,19 +44,17 @@ HOST = "0.0.0.0"
 PORT = 50007
 
 
-
-
 def map_to_json():
-    all_dots = []
-    for z in range(0, len(players)):
-        for j in range(0, len(players[z].claimed_dots)):
-            all_dots.append(players[z].claimed_dots[j])
-            all_dots.append(players[z].id)
-    return {"map": arrMap, "players_positions": [players[i].position for i in range(0, len(players))],
-            "all_dots": all_dots}
+    # all_dots = []
+    # for z in range(0, len(players)):
+    #     for j in range(0, len(players[z].claimed_dots)):
+    #         all_dots.append(players[z].claimed_dots[j])
+    #         all_dots.append(players[z].id)
     # return {"map": arrMap, "players_positions": [players[i].position for i in range(0, len(players))],
-    #         "claimed_dots": [players[z].claimed_dots[j] for z in range(0, len(players)) for j in
-    #                          range(0, len(players[z].claimed_dots))]}
+    #         "all_dots": all_dots}
+    return {"map": arrMap, "players_positions": [players[i].position for i in range(0, len(players))],
+            "all_dots": [players[z].claimed_dots[j] for z in range(0, len(players)) for j in
+                         range(0, len(players[z].claimed_dots))]}
 
 
 def show_map():  # delete in release
@@ -65,7 +63,8 @@ def show_map():  # delete in release
     for z in range(0, len(players)):
         for j in range(0, len(players[z].claimed_dots)):
             claimed_dots.append(players[z].claimed_dots[j])
-        claimed_dots.append(players[z].id)
+            # claimed_dots.append(players[z].id)
+
     print("cm", claimed_dots)
     for i in range(sizeMap):
         for j in range(sizeMap):
@@ -73,10 +72,11 @@ def show_map():  # delete in release
                 str_arr += ('(' + str(arrMap[i][j]) + ')')
             else:
                 if [i, j] in claimed_dots:
-                    str_arr += ('{' + str(claimed_dots[len(claimed_dots)-1]) + '}')
+                    str_arr += ('{' + str(arrMap[i][j]) + '}')
                 else:
                     str_arr += ('[' + str(arrMap[i][j]) + ']')
         str_arr += "\n"
+        # print("WOWOWOWOW\n",str_arr)
     return str_arr
 
 
@@ -92,12 +92,15 @@ def delete_player(z):
     for i in range(len(players[z].temp_dots)):
         arrMap[players[z].temp_dots[i][0]][players[z].temp_dots[i][1]] = free_space
 
-    arrMap[players[z].position[0]][players[z].position[1]] = free_space
+    # arrMap[players[z].position[0]][players[z].position[1]] = free_space
 
     players[z].claimed_dots = []
     players[z].temp_dots = []
     players[z].position = 0
     players[z].live = 0
+    players[z].id = -1
+    time.sleep(1)
+    # players[z].conn.close()
 
 
 def move_player(i):
@@ -239,7 +242,9 @@ def give_init_player_position():
         print("gIpp", x, y)
 
     return [x, y]
-#@TODO сделать отключение игрока и удаление players
+
+
+# @TODO сделать отключение игрока и удаление players
 
 def manipulation_with_connected_player(i):
     print("tt")
@@ -267,14 +272,16 @@ def manipulation_with_connected_player(i):
                         # move(arr, players[0])
                 except Exception as e:
                     res = e
-            # move_all(arr)
-            # res = show_map(arr)
-            #players[i].conn.send(str(res).encode())
-            # time.sleep(0.5)
-            #time.sleep(0.1)
-            # print(arr)
+                    # move_all(arr)
+                    # res = show_map(arr)
+                    # players[i].conn.send(str(res).encode())
+                    # time.sleep(0.5)
+                    # time.sleep(0.1)
+                    # print(arr)
         except Exception as e:
+            players[i].conn.close()
             delete_player(i)
+            # or crush this thread
             break
 
 
@@ -287,7 +294,8 @@ def generate_id():
     # print(ex_ids)
     a = [1, 2, 3, 4, 5, 6, 7, 8, 9]
     for x in ex_ids:
-        a.remove(x)
+        if x in a:
+            a.remove(x)
     # print(a)
     z = a[int(random.uniform(0, len(a)))]
     print("NEW ID is: ", z)
@@ -298,6 +306,30 @@ def getIndex(id):
     for i in range(len(players)):
         if id == players[i].id:
             return i
+
+
+def generate_init_base(temp_coords,z):
+    arrMap[temp_coords[0]][temp_coords[1]] = z
+    arrMap[temp_coords[0] + 1][temp_coords[1] + 1]=z
+    arrMap[temp_coords[0]][temp_coords[1] + 1]=z
+    arrMap[temp_coords[0] + 1][temp_coords[1]]=z
+    arrMap[temp_coords[0] - 1][temp_coords[1] - 1]=z
+    arrMap[temp_coords[0]][temp_coords[1] - 1]=z
+    arrMap[temp_coords[0] - 1][temp_coords[1]]=z
+    arrMap[temp_coords[0] + 1][temp_coords[1] - 1]=z
+    arrMap[temp_coords[0] - 1][temp_coords[1] + 1]=z
+
+    return [
+        [temp_coords[0],temp_coords[1]],
+        [(temp_coords[0] + 1), (temp_coords[1] + 1)],
+        [(temp_coords[0]), (temp_coords[1] + 1)],
+        [(temp_coords[0] + 1), (temp_coords[1])],
+        [(temp_coords[0] - 1), (temp_coords[1] - 1)],
+        [(temp_coords[0]), (temp_coords[1]) - 1],
+        [(temp_coords[0]) - 1, (temp_coords[1])],
+        [(temp_coords[0] + 1), (temp_coords[1] - 1)],
+        [(temp_coords[0] - 1), (temp_coords[1] + 1)]
+    ]
 
 
 def get_connections():
@@ -328,19 +360,10 @@ def get_connections():
         print(players)
 
         temp_coords = give_init_player_position()
-        temp_player = Player(conn, generate_id(), "nickname",
+        temp_id=generate_id()
+        temp_player = Player(conn, temp_id, "nickname",
                              temp_coords, int(random.uniform(-1.4, 2.4)),
-                             [
-                                 temp_coords,
-                                 [(temp_coords[0] + 1), (temp_coords[1] + 1)],
-                                 [(temp_coords[0]), (temp_coords[1] + 1)],
-                                 [(temp_coords[0] + 1), (temp_coords[1])],
-                                 [(temp_coords[0] - 1), (temp_coords[1] - 1)],
-                                 [(temp_coords[0]), (temp_coords[1])-1],
-                                 [(temp_coords[0])-1, (temp_coords[1])],
-                                 [(temp_coords[0] + 1), (temp_coords[1] - 1)],
-                                 [(temp_coords[0] - 1), (temp_coords[1] + 1)]
-                             ],
+                             generate_init_base(temp_coords, temp_id),
                              [],
                              1)
         players.append(temp_player)
