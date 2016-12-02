@@ -67,7 +67,8 @@ class Example(QWidget):
             return '{0}{1}'.format(d['part1'][int(random.uniform(0,len(d['part1'])))],d['part2'][int(random.uniform(0,len(d['part2'])))])
         nick=generate_nickname()
         print(nick)
-        s.send(('nickname '+str(nick)).encode())
+        try:s.send(('reg '+str(nick)).encode())
+        except Exception: exit()
         time.sleep(1)
         def dict_to_str(dict):
             str_arr = ""
@@ -84,18 +85,21 @@ class Example(QWidget):
             return str_arr
 
         def send_command(command):
-            if command != "None":
-                s.send(command.encode())
-            in1 = (s.recv(10000)).decode().replace("\'", "\"").split("}")[0] + "}"
-            print(in1, type(in1))
-            # json1_file = open(in1)
-            # json1_str = in1.read()
-            json1_data = json.loads(in1)
-            # content=json.loads(in1)
-            self.onChanged(dict_to_str(json1_data))
-            time.sleep(0.1)
-            s.send('getId'.encode())
-            textview_id.setText((s.recv(10)).decode())
+            try:
+                if command != "None":
+                    s.send(command.encode())
+                print(command)
+                in1 = (s.recv(10000)).decode().replace("\'", "\"").split("}")[0] + "}"
+                print(in1, type(in1))
+
+                json1_data = json.loads(in1)
+                self.onChanged(dict_to_str(json1_data))
+                time.sleep(0.1)
+                s.send('getId'.encode())
+
+                textview_id.setText((s.recv(10)).decode())
+            except Exception:
+                exit()
 
         def show_map():
             while True:
@@ -109,15 +113,19 @@ class Example(QWidget):
 
     def move_up(self):
         s.send("move 1".encode())
+        print("1")
 
     def move_down(self):
         s.send("move -1".encode())
+        print("-1")
 
     def move_left(self):
         s.send("move 0".encode())
+        print("0")
 
     def move_right(self):
         s.send("move 2".encode())
+        print("2")
 
     def onChanged(self, text):
         self.lbl.setText(text)
@@ -128,7 +136,8 @@ if __name__ == '__main__':
     # s = socket.socket(socket.AF_INET)
     # s.connect(("127.0.0.1", 6001))
 
-    HOST = 'jangofetthd.me'  # The remote host
+    # HOST = 'jangofetthd.me'  # The remote host
+    HOST = '127.0.0.1'  # The remote host
     PORT = 1566  # The same port as used by the server
     s = None
     for res in socket.getaddrinfo(HOST, PORT, socket.AF_UNSPEC, socket.SOCK_STREAM):

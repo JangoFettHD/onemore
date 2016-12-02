@@ -38,37 +38,38 @@ class Player:
 sizeMap = 30  # размер карты X*X
 free_space = '_'  # символ для обозначения пустоты
 arrMap = [[free_space for _ in range(0, sizeMap)] for _ in range(0, sizeMap)]  # сама карта
-players = []  # массив игроков
+players = {}  # массив игроков
 
 HOST = "0.0.0.0"
 PORT = 50015
 
 
 def map_to_json():
-    return {"map": arrMap, "players_positions": [players[i].position for i in range(0, len(players))],
-            "all_dots": [players[z].claimed_dots[j] for z in range(0, len(players)) for j in
-                         range(0, len(players[z].claimed_dots))]}
+    return {"map": arrMap,
+            "players_positions": [p.position for p in players.values()],
+            "all_dots": [p1.claimed_dots[j] for p1 in players.values() for j in
+                         range(0, len(p1.claimed_dots))]}
 
 
-def show_map():  # delete in release
-    str_arr = ""
-    claimed_dots = []
-    for z in range(0, len(players)):
-        for j in range(0, len(players[z].claimed_dots)):
-            claimed_dots.append(players[z].claimed_dots[j])
-
-    print("cm", claimed_dots)
-    for i in range(sizeMap):
-        for j in range(sizeMap):
-            if [i, j] in [players[i].position for i in range(0, len(players))]:
-                str_arr += ('(' + str(arrMap[i][j]) + ')')
-            else:
-                if [i, j] in claimed_dots:
-                    str_arr += ('{' + str(arrMap[i][j]) + '}')
-                else:
-                    str_arr += ('[' + str(arrMap[i][j]) + ']')
-        str_arr += "\n"
-    return str_arr
+# def show_map():  # delete in release
+#     str_arr = ""
+#     claimed_dots = []
+#     for z in range(0, len(players)):
+#         for j in range(0, len(players[z].claimed_dots)):
+#             claimed_dots.append(players[z].claimed_dots[j])
+#
+#     print("cm", claimed_dots)
+#     for i in range(sizeMap):
+#         for j in range(sizeMap):
+#             if [i, j] in [players[i].position for i in range(0, len(players))]:
+#                 str_arr += ('(' + str(arrMap[i][j]) + ')')
+#             else:
+#                 if [i, j] in claimed_dots:
+#                     str_arr += ('{' + str(arrMap[i][j]) + '}')
+#                 else:
+#                     str_arr += ('[' + str(arrMap[i][j]) + ']')
+#         str_arr += "\n"
+#     return str_arr
 
 
 '''
@@ -76,46 +77,44 @@ player must be alive
 '''
 
 
-def delete_player(z):
-    if players[z].live==0:
-        print("P{0} ! Player {1} disconnected".format(players[z].id, players[z].nickname))
-    else:
-        print("P{0} ! Player #{0} died!".format(players[z].id))
-        for i in range(len(players[z].claimed_dots)):
-            arrMap[players[z].claimed_dots[i][0]][players[z].claimed_dots[i][1]] = free_space
-
-        for i in range(len(players[z].temp_dots)):
-            arrMap[players[z].temp_dots[i][0]][players[z].temp_dots[i][1]] = free_space
-
-        # players.pop(z)
-        players[z].claimed_dots = []
-        players[z].temp_dots = []
-        players[z].position = 0
-        players[z].live = 0
-        players[z].id = -1
-        players[z].direction = -5
+def delete_player(player):
+    # if player.live == 0:
+    #     print("P{0} ! Player {1} disconnected".format(player.id, player.nickname))
+    # else:
+    print("P{0} ! Player #{0} died!".format(player.id))
+    for i in range(len(player.claimed_dots)):
+        arrMap[player.claimed_dots[i][0]][player.claimed_dots[i][1]] = free_space
+    for i in range(len(player.temp_dots)):
+        arrMap[player.temp_dots[i][0]][player.temp_dots[i][1]] = free_space
+    # players.pop(z)
+    player.claimed_dots = []
+    player.temp_dots = []
+    player.position = 0
+    player.live = 0
+    player.id = -1
+    player.direction = -5
 
         # time.sleep(1)
         # players[z].conn.close()
 
 
-def move_player(i):
+def move_player(player):
     all_temp_dots = []
-    for z in range(0, len(players)):
-        for j in range(0, len(players[z].temp_dots)):
-            all_temp_dots.append([players[z].temp_dots[j], z])
+    for p in players.values():
+        for j in range(0, len(p.temp_dots)):
+            all_temp_dots.append([p.temp_dots[j], p])
 
     claimed_dots = []
-    for z in range(len(players[i].claimed_dots)):
-        claimed_dots.append([players[i].claimed_dots[z][0], players[i].claimed_dots[z][1]])
+    for z in range(len(player.claimed_dots)):
+        claimed_dots.append([player.claimed_dots[z][0], player.claimed_dots[z][1]])
     temp_dots = []
     # print("len(td)", len(players[i].temp_dots))
-    for z in range(len(players[i].temp_dots)):
-        temp_dots.append([players[i].temp_dots[z][0], players[i].temp_dots[z][1]])
+    for z in range(len(player.temp_dots)):
+        temp_dots.append([player.temp_dots[z][0], player.temp_dots[z][1]])
 
-    x = players[i].position[0]
-    y = players[i].position[1]
-    dir = players[i].direction
+    x = player.position[0]
+    y = player.position[1]
+    dir = player.direction
     live = 1
 
     rules = {
@@ -133,42 +132,45 @@ def move_player(i):
                     # print("die", k)
                     live = 0
             if live != 0:
-                players[i].temp_dots.append(rules.get(dir)[1])
+                player.temp_dots.append(rules.get(dir)[1])
                 if rules.get(dir)[1] in claimed_dots:
-                    players[i].claimed_dots += temp_dots
-                    players[i].temp_dots = []
-                players[i].position[rules.get(dir)[2]] += rules.get(dir)[3]
-                arrMap[players[i].position[0]][players[i].position[1]] = players[i].id
+                    player.claimed_dots += temp_dots
+                    player.temp_dots = []
+                player.position[rules.get(dir)[2]] += rules.get(dir)[3]
+                arrMap[player.position[0]][player.position[1]] = player.id
         else:
-            players[i].live = 0
-            delete_player(i)
+            player.live = 0
+            delete_player(player)
 
 
 def update_map():
     while True:
-        alive_players = 0
-        if players:
-            for p in players:
-                alive_players += p.live
-        if alive_players > 0:
-            for i in range(len(players)):
-                if players[i].live == 1:
-                    move_player(i)
-            time.sleep(0.6)
+        try:
+            alive_players = 0
+            if players:
+                for p in players.values():
+                    alive_players += p.live
+            if alive_players > 0:
+                for p in players.values():
+                    if p.live == 1:
+                        move_player(p)
+                time.sleep(0.6)
+        except Exception:
+            print("-")
 
 
 threading.Thread(target=update_map).start()
-
+#@TODO TODO
 
 def get_notfree_dots():
     all_temp_dots = []
-    for z in range(0, len(players)):
-        for j in range(0, len(players[z].temp_dots)):
-            all_temp_dots.append([players[z].temp_dots[j], z])
     all_claimed_dots = []
-    for z in range(0, len(players)):
-        for j in range(0, len(players[z].claimed_dots)):
-            all_claimed_dots.append([players[z].claimed_dots[j], z])
+    for p in players.values():
+        for j in range(0, len(p.temp_dots)):
+            all_temp_dots.append([p.temp_dots[j]])
+        for j in range(0, len(p.claimed_dots)):
+            all_claimed_dots.append([p.claimed_dots[j]])
+    print(all_claimed_dots,all_temp_dots)
     return all_claimed_dots + all_temp_dots
 
 
@@ -186,43 +188,103 @@ def give_init_player_position():
 
 # @TODO сделать отключение игрока и удаление players
 
-def manipulation_with_connected_player(i):
-    # print("tt")
-    while True:
-        try:
-            data = ((players[i].conn.recv(1024)).decode()).split()
-            data1 = data[1:]
-            res = map_to_json()
-            if len(data) > 0:
-                try:
-                    if data[0] == "getId":
-                        res = players[i].id
-                        players[i].conn.send(str(res).encode())
-                    if data[0] == "getData":
-                        # print("getData")
-                        res = map_to_json()
-                        players[i].conn.send(str(res).encode())
-                        # if data[0] == "getplayerspos":
-                        #     res = get_players_pos(players)
-                        # print("show map for", players[i].id)
-                    if data[0] == "move":
-                        # print("move")
 
-                        if not (players[i].direction == 0 and int(data[1]) == 2 or players[
-                            i].direction == 2 and int(data[1]) == 0 or players[i].direction == -1 and int(
-                            data[1]) == 1 or players[i].direction == 1 and int(data[1]) == -1) and players[
-                            i].live == 1 and players[i].direction != int(data[1]):
-                            players[i].direction = int(data[1])
-                            print("P{0} | Change dir to {1}".format(players[i].id, players[i].direction))
+class CommandHandler(asyncore.dispatcher_with_send):
+    def __init__(self, name, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.name = name
 
-                            # move(arr, players[0])
-                except Exception as e:
-                    res = e
-        except Exception as e:
-            players[i].conn.close()
-            delete_player(i)
-            # or crush this thread
-            break
+    def handle_read(self):
+        command = self.recv(1024)
+
+        if not command:
+            return
+
+        else:
+            command = command.decode().split()
+            # print(command)
+
+        if self.addr in players:
+            player=players[self.addr]
+            if command[0] == "move":
+                if not (player.direction == 0 and int(command[1]) == 2 or player
+                        .direction == 2 and int(command[1]) == 0 or player.direction == -1 and int(
+                    command[1]) == 1 or player.direction == 1 and int(
+                    command[1]) == -1) and player.live == 1 and player.direction != int(command[1]):
+                    player.direction = int(command[1])
+                    print("P{0} | Change dir to {1}".format(player.id, player.direction))
+            elif command[0] == "getId":
+                self.send(str(player.id).encode())
+            elif command[0] == "getData":
+                # print("getData")
+                res = map_to_json()
+                self.send(str(res).encode())
+            else:
+                vals = {}
+                vals["error"] = "Command not found"
+                # self.send(json.dumps(vals).encode())
+        else:
+            if command[0] == "reg":
+                print("[  \n=> Generate a new player:", '\n   Connected by', self.addr, )
+                print("   players: ", players)
+                nick = command[1]
+                print("   Nickname=", nick)
+                temp_coords = give_init_player_position()
+                temp_id = generate_id()
+                temp_player = Player(self.addr, temp_id, nick,
+                                     [temp_coords[0], temp_coords[1]], int(random.uniform(-1.4, 2.4)),
+                                     generate_init_base(temp_coords, temp_id),
+                                     [],
+                                     1)
+                print("   NEW PLAYER is: ", str(temp_player))
+                players[self.addr]=temp_player
+                print("  ", players, "\n]")
+
+
+    def handle_close(self):
+        print("Disconnect "+str(self.addr))
+        if self.addr in players:
+            players.pop(self.addr)
+        self.close()
+
+#
+# def manipulation_with_connected_player(i):
+#     # print("tt")
+#     while True:
+#         try:
+#             data = ((players[i].conn.recv(1024)).decode()).split()
+#             data1 = data[1:]
+#             res = map_to_json()
+#             if len(data) > 0:
+#                 try:
+#                     if data[0] == "getId":
+#                         res = players[i].id
+#                         players[i].conn.send(str(res).encode())
+#                     if data[0] == "getData":
+#                         # print("getData")
+#                         res = map_to_json()
+#                         players[i].conn.send(str(res).encode())
+#                         # if data[0] == "getplayerspos":
+#                         #     res = get_players_pos(players)
+#                         # print("show map for", players[i].id)
+#                     if data[0] == "move":
+#                         # print("move")
+#
+#                         if not (players[i].direction == 0 and int(data[1]) == 2 or players[
+#                             i].direction == 2 and int(data[1]) == 0 or players[i].direction == -1 and int(
+#                             data[1]) == 1 or players[i].direction == 1 and int(data[1]) == -1) and players[
+#                             i].live == 1 and players[i].direction != int(data[1]):
+#                             players[i].direction = int(data[1])
+#                             print("P{0} | Change dir to {1}".format(players[i].id, players[i].direction))
+#
+#                             # move(arr, players[0])
+#                 except Exception as e:
+#                     res = e
+#         except Exception as e:
+#             players[i].conn.close()
+#             delete_player(i)
+#             # or crush this thread
+#             break
 
 
 def generate_id():
@@ -230,8 +292,8 @@ def generate_id():
         try:
             ex_ids = []
             if players:
-                for i in range(len(players)):
-                    ex_ids.append(players[i].id)
+                for p in players.values():
+                    ex_ids.append(p.id)
             a = [1, 2, 3, 4, 5, 6, 7, 8, 9]
             for x in ex_ids:
                 if x in a:
@@ -257,8 +319,8 @@ def generate_init_base(temp_coords, z):
             arrBaseDots.append([i, j])
     return arrBaseDots
 
-class Server(asyncore.dispatcher):
 
+class Server(asyncore.dispatcher):
     def __init__(self, host="localhost", port=1566):
         asyncore.dispatcher.__init__(self)
         self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -273,9 +335,11 @@ class Server(asyncore.dispatcher):
         if pair is None:
             return
         else:
-            sock, addr = pair
-            print('Incoming connection from %s' % repr(addr))
-            self.handler = get_connections(str(addr), sock)
+            if len(players)<9:
+                sock, addr = pair
+                print('Incoming connection from %s' % repr(addr))
+                self.handler = CommandHandler(str(addr), sock)
+            # self.handler = get_connections(str(addr), sock)
 
     @staticmethod
     def main(host="localhost", port=1566):
@@ -286,35 +350,35 @@ class Server(asyncore.dispatcher):
             print("Ctrl+C pressed. Shutting down.")
             server.close()
 
-def get_connections(addr,sock):
 
-    conn=sock
-    conn.settimeout(3)
-    print("[  \n=> Generate a new player:", '\n   Connected by', addr, )
-    print("   players: ", players)
-
-    nick="Unknown"
-    try:
-        data = ((conn.recv(200)).decode()).split()
-        if data[1] != "Unknown":
-            nick=data[1]
-    except Exception as e:
-        print(">> EXCEPTION: ", e)
-
-    print("   Nickname=",nick)
-    temp_coords = give_init_player_position()
-    temp_id = generate_id()
-    temp_player = Player(conn, temp_id, nick,
-                         [temp_coords[0], temp_coords[1]], int(random.uniform(-1.4, 2.4)),
-                         generate_init_base(temp_coords, temp_id),
-                         [],
-                         1)
-    print("   NEW PLAYER is: ", str(temp_player))
-    players.append(temp_player)
-    threading.Thread(target=manipulation_with_connected_player, args=[getIndex(temp_player.id)]).start()
-
-    print("  ", players, "\n]")
-
-
+# def get_connections(addr, sock):
+#     conn = sock
+#     conn.settimeout(3)
+#     print("[  \n=> Generate a new player:", '\n   Connected by', addr, )
+#     print("   players: ", players)
+#
+#     nick = "Unknown"
+#     try:
+#         data = ((conn.recv(200)).decode()).split()
+#         if data[1] != "Unknown":
+#             nick = data[1]
+#     except Exception as e:
+#         print(">> EXCEPTION: ", e)
+#
+#     print("   Nickname=", nick)
+#     temp_coords = give_init_player_position()
+#     temp_id = generate_id()
+#     temp_player = Player(conn, temp_id, nick,
+#                          [temp_coords[0], temp_coords[1]], int(random.uniform(-1.4, 2.4)),
+#                          generate_init_base(temp_coords, temp_id),
+#                          [],
+#                          1)
+#     print("   NEW PLAYER is: ", str(temp_player))
+#     players.append(temp_player)
+#     threading.Thread(target=manipulation_with_connected_player, args=[getIndex(temp_player.id)]).start()
+#
+#     print("  ", players, "\n]")
+#
+#
 # threading.Thread(target=get_connections).start()
 Server.main("0.0.0.0")
