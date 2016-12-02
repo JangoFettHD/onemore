@@ -35,6 +35,7 @@ class Player:
                                                                                     self.temp_dots, self.live)
 
 
+MAX_PLAYERS = 10
 sizeMap = 30  # размер карты X*X
 free_space = '_'  # символ для обозначения пустоты
 arrMap = [[free_space for _ in range(0, sizeMap)] for _ in range(0, sizeMap)]  # сама карта
@@ -94,8 +95,8 @@ def delete_player(player):
     player.id = -1
     player.direction = -5
 
-        # time.sleep(1)
-        # players[z].conn.close()
+    # time.sleep(1)
+    # players[z].conn.close()
 
 
 def move_player(player):
@@ -160,7 +161,9 @@ def update_map():
 
 
 threading.Thread(target=update_map).start()
-#@TODO TODO
+
+
+# @TODO TODO
 
 def get_notfree_dots():
     all_temp_dots = []
@@ -170,7 +173,7 @@ def get_notfree_dots():
             all_temp_dots.append([p.temp_dots[j]])
         for j in range(0, len(p.claimed_dots)):
             all_claimed_dots.append([p.claimed_dots[j]])
-    print(all_claimed_dots,all_temp_dots)
+    print(all_claimed_dots, all_temp_dots)
     return all_claimed_dots + all_temp_dots
 
 
@@ -205,7 +208,7 @@ class CommandHandler(asyncore.dispatcher_with_send):
             # print(command)
 
         if self.addr in players:
-            player=players[self.addr]
+            player = players[self.addr]
             if command[0] == "move":
                 if not (player.direction == 0 and int(command[1]) == 2 or player
                         .direction == 2 and int(command[1]) == 0 or player.direction == -1 and int(
@@ -237,15 +240,15 @@ class CommandHandler(asyncore.dispatcher_with_send):
                                      [],
                                      1)
                 print("   NEW PLAYER is: ", str(temp_player))
-                players[self.addr]=temp_player
+                players[self.addr] = temp_player
                 print("  ", players, "\n]")
 
-
     def handle_close(self):
-        print("Disconnect "+str(self.addr))
+        print("Disconnect " + str(self.addr))
         if self.addr in players:
             players.pop(self.addr)
         self.close()
+
 
 #
 # def manipulation_with_connected_player(i):
@@ -294,7 +297,11 @@ def generate_id():
             if players:
                 for p in players.values():
                     ex_ids.append(p.id)
-            a = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+            a = []
+            for i in range(MAX_PLAYERS):
+                a.append(i)
+            # a = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+            print(a)
             for x in ex_ids:
                 if x in a:
                     a.remove(x)
@@ -335,11 +342,11 @@ class Server(asyncore.dispatcher):
         if pair is None:
             return
         else:
-            if len(players)<9:
+            if len(players) < 10:
                 sock, addr = pair
                 print('Incoming connection from %s' % repr(addr))
                 self.handler = CommandHandler(str(addr), sock)
-            # self.handler = get_connections(str(addr), sock)
+                # self.handler = get_connections(str(addr), sock)
 
     @staticmethod
     def main(host="localhost", port=1566):
@@ -381,4 +388,5 @@ class Server(asyncore.dispatcher):
 #
 #
 # threading.Thread(target=get_connections).start()
+
 Server.main("0.0.0.0")
