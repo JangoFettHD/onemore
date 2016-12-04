@@ -113,17 +113,28 @@ class GameMap:
         str_json += " }"
         return str_json
 
+    def not_free_dots(self):
+        all_temp_dots = []
+        all_claimed_dots = []
+        for p in self.players.values():
+            for j in range(0, len(p.temp_dots)):
+                all_temp_dots.append([p.temp_dots[j]])
+            for j in range(0, len(p.claimed_dots)):
+                all_claimed_dots.append([p.claimed_dots[j]])
+        #print(all_claimed_dots, all_temp_dots)
+        return all_claimed_dots + all_temp_dots
+
 
 mapa = GameMap(30)
-mapa.add_player(Player(("0.0.0.0", 5152), 4, "#FFFFFF", "Jon", Dot(5, 2), 1,
-                       [Dot(1, 1), Dot(1, 2), Dot(4, 4)],
-                       [Dot(5, 2), Dot(3, 1), Dot(7, 7)], 1))
-mapa.add_player(Player(("125.211.1.0", 5166), 1, "#DDDFFF", "Kenny", Dot(3, 1), -1,
-                       [Dot(2, 2), Dot(5, 2), Dot(7, 7)],
-                       [Dot(1, 1), Dot(1, 2), Dot(5, 5)], 1))
-print(mapa.to_json())
-print(mapa.is_claimed(Dot(0, 1)))
-print(mapa.is_claimed(Dot(5, 2)))
+# mapa.add_player(Player(("0.0.0.0", 5152), 4, "#FFFFFF", "Jon", Dot(5, 2), 1,
+#                        [Dot(1, 1), Dot(1, 2), Dot(4, 4)],
+#                        [Dot(5, 2), Dot(3, 1), Dot(7, 7)], 1))
+# mapa.add_player(Player(("125.211.1.0", 5166), 1, "#DDDFFF", "Kenny", Dot(3, 1), -1,
+#                        [Dot(2, 2), Dot(5, 2), Dot(7, 7)],
+#                        [Dot(1, 1), Dot(1, 2), Dot(5, 5)], 1))
+# print(mapa.to_json())
+# print(mapa.is_claimed(Dot(0, 1)))
+# print(mapa.is_claimed(Dot(5, 2)))
 
 
 class CommandHandler(asyncore.dispatcher_with_send):
@@ -162,7 +173,7 @@ class CommandHandler(asyncore.dispatcher_with_send):
         else:
             if command[0] == "reg":
                 nick = command[1]
-                temp_coords = Dot(5,5)
+                temp_coords = generate_init_pos()
                 temp_id = generate_id()
                 temp_player = Player(self.addr, temp_id, "", nick,
                                      temp_coords, int(random.uniform(-1.4, 2.4)),
@@ -196,6 +207,22 @@ def generate_id():
             return z
         except Exception as e:
             print(">> EXCEPTION: ", e)
+
+
+def generate_init_pos():
+    base=[]
+    x = -1
+    y = -1
+
+    while not (0 < x < (mapa.sizeMap - 1) > y > 0) and not (base in mapa.not_free_dots()):
+        x = int(random.uniform(1, (mapa.sizeMap - 2)))
+        y = int(random.uniform(1, (mapa.sizeMap - 2)))
+        for i in range(x - 1, x + 2):
+            for j in range(y - 1, y + 2):
+                base.append(Dot(i, j))
+        #print("   init pos: [", x, y, "]")
+
+    return Dot(x, y)
 
 
 def generate_init_base(temp_coords):

@@ -70,11 +70,37 @@ class Example(QWidget):
         try:s.send(('reg '+str(nick)).encode())
         except Exception: exit()
         time.sleep(1)
+
         def dict_to_str(dict):
-            free_space = '_'  # символ для обозначения пустоты
+            free_space = '[_]'  # символ для обозначения пустоты
+            claimed_space = ':{0}:'  # символ для обозначения пустоты
+            temp_space = '[{0}]'  # символ для обозначения пустоты
+            head_space = '({0})'  # символ для обозначения пустоты
             size_map=dict["size_map"]
             print(size_map)
+            data=dict["data"]
             arrMap = [[free_space for _ in range(0, size_map)] for _ in range(0, size_map)]  # сама карта (1 layout)
+
+            for p in data:
+                p_id=p["id"]
+                p_nickname=p["nickname"]
+                p_color=p["color"]
+                p_position=p["position"]
+                p_claimed_dots=p["claimed_dots"]
+                p_temp_dots=p["temp_dots"]
+                for pos in p_claimed_dots:
+                    arrMap[pos[0]][pos[1]]=claimed_space.format(p_id)
+                for pos in p_temp_dots:
+                    arrMap[pos[0]][pos[1]]=temp_space.format(p_id)
+                arrMap[p_position[0]][p_position[1]]=head_space.format(p_id)
+
+            str_arr = ""
+            for i in range(size_map):
+                for j in range(size_map):
+                    str_arr+=arrMap[i][j]
+                str_arr+="\n"
+
+            return str_arr
 
 
 
@@ -91,24 +117,25 @@ class Example(QWidget):
             #             else:
             #                 str_arr += ('[' + str(dict["map"][i][j]) + ']')
             #     str_arr += "\n"
-            return str_arr
+
 
         def send_command(command):
-            try:
-                if command != "None":
-                    s.send(command.encode())
-                print(command)
-                in1 = (s.recv(500000)).decode().replace("\'", "\"")
-                print(in1, type(in1))
-
-                json1_data = json.loads(in1)
-                self.onChanged(dict_to_str(json1_data))
-                time.sleep(0.1)
-                s.send('getId'.encode())
-
-                textview_id.setText((s.recv(10)).decode())
-            except Exception:
-                exit()
+            # try:
+            if command != "None":
+                s.send(command.encode())
+            print(command)
+            in1 = (s.recv(500000)).decode().replace("\'", "\"")
+            #print(in1, type(in1))
+            json1_data = json.loads(in1)
+            #print(dict_to_str(json1_data))
+            self.onChanged(dict_to_str(json1_data))
+            #print(dict_to_str(json1_data))
+            time.sleep(0.1)
+            s.send('getId'.encode())
+            textview_id.setText((s.recv(10)).decode())
+            # except Exception as e:
+            #     print(e)
+            #     exit()
 
         def show_map():
             while True:
