@@ -88,13 +88,13 @@ class Example(QWidget):
 
             for p in data:
                 p_id = p["id"]
-                p_nickname = p["nickname"]
-                p_color = p["color"]
-                p_position = p["position"]
                 p_claimed_dots = p["claimed_dots"]
-                p_temp_dots = p["temp_dots"]
                 for pos in p_claimed_dots:
                     arrMap[pos[0]][pos[1]] = claimed_space.format(p_id)
+            for p in data:
+                p_id = p["id"]
+                p_position = p["position"]
+                p_temp_dots = p["temp_dots"]
                 for pos in p_temp_dots:
                     arrMap[pos[0]][pos[1]] = temp_space.format(p_id)
                 arrMap[p_position[0]][p_position[1]] = head_space.format(p_id)

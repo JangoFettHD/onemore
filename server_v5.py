@@ -7,8 +7,10 @@ import sys
 from shapely.geometry import Point, Polygon
 
 MAX_PLAYERS = 10
-
+user_can_be_disconected=True
 str_json = ""
+
+players_to_delete=[]
 #@TODO
 
 # update(){
@@ -94,7 +96,8 @@ class Player:
 
 def flood_fill(player, i, j):
     if Dot(i,j) not in player.claimed_dots:
-        player.claimed_dots.append(Dot(i,j))
+        if Dot(i,j) not in player.claimed_dots:
+            player.claimed_dots.append(Dot(i,j))
         if i != 0:
             flood_fill(player, i - 1, j)
         if j != 0:
@@ -129,6 +132,9 @@ class GameMap:
     def disconnect_player(self, player=0, addr=0):
         if addr == 0:
             addr = player.conn
+        if player == 0:
+            player = self.players.get(addr)
+        self.remove_player(player)
         self.players.pop(addr)
 
     def is_claimed(self, dot):
@@ -154,14 +160,30 @@ class GameMap:
         str_json += " }"
         return str_json
 
+
+    def list_in_list(self, p):
+        a=[]
+        for opl in self.players.values():
+            if opl!=p:
+                for d in \
+                        p.claimed_dots:
+                    if d in \
+                            opl.claimed_dots:
+                        a.append(d)
+                for x in a:
+                    opl.claimed_dots.remove(x)
+
+
     def not_free_dots(self):
         all_temp_dots = []
         all_claimed_dots = []
         for p in self.players.values():
             for j in range(0, len(p.temp_dots)):
-                all_temp_dots.append([p.temp_dots[j]])
+                all_temp_dots.append(p.temp_dots[j])
             for j in range(0, len(p.claimed_dots)):
-                all_claimed_dots.append([p.claimed_dots[j]])
+                all_claimed_dots.append(p.claimed_dots[j])
+        print(all_temp_dots,all_claimed_dots)
+        print(all_temp_dots+all_claimed_dots)
         return all_claimed_dots + all_temp_dots
 
     def all_temp_dots(self):
@@ -171,7 +193,13 @@ class GameMap:
                 temp_dots.append([p.temp_dots[j], p])
         return temp_dots
 
+    def delete_players(self):
+        for p in players_to_delete:
+            self.disconnect_player(addr=p.conn)
+            players_to_delete.remove(p)
+
     def update_map(self):
+        self.delete_players()
         for p in self.players.values():
             if p.live != 0:
 
@@ -210,9 +238,10 @@ class GameMap:
                                     for i in range(0, self.sizeMap):
                                         for j in range(0, self.sizeMap):
                                             # print(i, j, poly.contains(Point(i, j)))
-                                            if poly.contains(Point(i, j)) and p.temp_dots:
+                                            if poly.contains(Point(i, j)) and len(p.temp_dots)>0:
                                                 # print("paint",player.id,rules.get(dir)[4][0],rules.get(dir)[4][1], player.position)
                                                 flood_fill(p, i, j)
+                                                mapa.list_in_list(p)
                                 p.temp_dots = []
                             p.position[rules.get(dir)[2]] += rules.get(dir)[3]
                             #arrMap[player.position[0]][player.position[1]] = player.id
@@ -235,11 +264,13 @@ mapa = GameMap(30)
 # print(mapa.is_claimed(Dot(5, 2)))
 
 def update():
+    global user_can_be_disconected
     global str_json
     while True:
         if mapa.players:
             time.sleep(0.7)
             mapa.update_map()
+            print("t")
             str_json=mapa.to_json()
 
 threading.Thread(target=update).start()
@@ -272,7 +303,7 @@ class CommandHandler(asyncore.dispatcher_with_send):
             elif command[0] == "getId":
                 self.send(str(player.id).encode())
             elif command[0] == "getData":
-                # print("getData")
+                print("getData")
                 res = str_json
                 self.send(str(res).encode())
             else:
@@ -294,7 +325,7 @@ class CommandHandler(asyncore.dispatcher_with_send):
     def handle_close(self):
         print("Disconnect " + str(self.addr))
         if self.addr in mapa.players:
-            mapa.disconnect_player(addr=self.addr)
+            players_to_delete.append(mapa.players[self.addr])
         self.close()
 
 
@@ -306,7 +337,7 @@ def generate_id():
                 for p in mapa.players.values():
                     ex_ids.append(p.id)
             a = []
-            for i in range(MAX_PLAYERS):
+            for i in range(1,MAX_PLAYERS):
                 a.append(i)
             for x in ex_ids:
                 if x in a:
@@ -316,13 +347,21 @@ def generate_id():
         except Exception as e:
             print(">> EXCEPTION: ", e)
 
+def check_arr_in_arr(a,b):
+    for x in a:
+        if x not in b:
+            return False
+        return True
 
 def generate_init_pos():
     base = []
+    map1=mapa.not_free_dots()
     x = -1
     y = -1
+    print(base, mapa.not_free_dots())
 
-    while not (0 < x < (mapa.sizeMap - 1) > y > 0) and not (base in mapa.not_free_dots()):
+    while not (1 < x < (mapa.sizeMap - 2) > y > 1) and not (check_arr_in_arr(base, map1)):
+        base = []
         x = int(random.uniform(1, (mapa.sizeMap - 2)))
         y = int(random.uniform(1, (mapa.sizeMap - 2)))
         for i in range(x - 1, x + 2):
@@ -356,7 +395,7 @@ class Server(asyncore.dispatcher):
         if pair is None:
             return
         else:
-            if len(mapa.players) < MAX_PLAYERS:
+            if len(mapa.players) < MAX_PLAYERS-1:
                 sock, addr = pair
                 print('Incoming connection from %s' % repr(addr))
                 self.handler = CommandHandler(str(addr), sock)
