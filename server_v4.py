@@ -4,6 +4,8 @@ import random
 import threading
 import time
 import sys
+from shapely.geometry import Point, Polygon
+
 
 ''' две рекурсии только '''
 
@@ -78,6 +80,30 @@ player must be alive
 '''
 
 
+def flood_fill(player, i, j):
+    if arrMap[i][j] != player.id:
+        arrMap[i][j] = player.id
+        if i != 0:
+            flood_fill(player, i - 1, j)
+        if j != 0:
+            flood_fill(player, i, j - 1)
+        if i != (len(arrMap) - 1):
+            flood_fill(player, i + 1, j)
+        if j != (len(arrMap[0]) - 1):
+            flood_fill(player, i, j + 1)
+        player.claimed_dots.append([i,j])
+
+
+def inPolygon(x, y, xp, yp):
+   c=0
+   for i in range(len(xp)):
+       if (((yp[i]<=y and y<yp[i-1]) or (yp[i-1]<=y and y<yp[i])) and \
+           (x > (xp[i-1] - xp[i]) * (y - yp[i]) / (yp[i-1] - yp[i]) + xp[i])): c = 1 - c
+   return c
+
+print( inPolygon(100, 0, (-100, 100, 100, -100), (100, 100, -100, -100)))
+
+
 def delete_player(player):
     # if player.live == 0:
     #     print("P{0} ! Player {1} disconnected".format(player.id, player.nickname))
@@ -118,11 +144,12 @@ def move_player(player):
     dir = player.direction
     live = 1
 
+
     rules = {
-        1: [x > 0, [x - 1, y], 0, -1],
-        -1: [x < (sizeMap - 1), [x + 1, y], 0, 1],
-        0: [y > 0, [x, y - 1], 1, -1],
-        2: [y < (sizeMap - 1), [x, y + 1], 1, 1]
+        1: [x > 0, [x - 1, y], 0, -1, [x + 1, y -1],[x + 1, y +1]],
+        -1: [x < (sizeMap - 1), [x + 1, y], 0, 1, [x - 1, y -1],[x - 1, y +1]],
+        0: [y > 0, [x, y - 1], 1, -1, [x - 1, y +1],[x + 1, y +1]],
+        2: [y < (sizeMap - 1), [x, y + 1], 1, 1,[x + 1, y -1],[x - 1, y -1]]
     }
 
     if dir in rules:
@@ -135,8 +162,35 @@ def move_player(player):
             if live != 0:
                 player.temp_dots.append(rules.get(dir)[1])
                 if rules.get(dir)[1] in claimed_dots:
+
                     player.claimed_dots += temp_dots
                     player.temp_dots = []
+                    #
+                    
+                    # arrX = []
+                    # arrY = []
+                    # for z in range(len(player.claimed_dots)):
+                    #     arrX.append(player.claimed_dots[z][0])
+                    #     arrY.append(player.claimed_dots[z][1])
+                    # print(temp_dots, player,rules.get(dir)[4][0],rules.get(dir)[4][1])
+                    if claimed_dots:
+                        poly=Polygon(claimed_dots)
+                        for i in range(0, len(arrMap)):
+                            for j in range(0, len(arrMap)):
+                                print(i,j,poly.contains(Point(i, j)))
+                                if poly.contains(Point(i, j)):
+                                    #print("paint",player.id,rules.get(dir)[4][0],rules.get(dir)[4][1], player.position)
+                                    flood_fill(player,i,j)
+
+                    # elif inPolygon(rules.get(dir)[5][0], rules.get(dir)[5][1], arrX, arrY):
+                    #     print("paint",player.id,rules.get(dir)[5][0],rules.get(dir)[5][1], player.position)
+                    #     flood_fill(player,rules.get(dir)[5][0],rules.get(dir)[5][1])
+                    # # if inPolygon(rules.get(dir)[1][0], rules.get(dir)[1][1], arrX, arrY):
+                    #     print("paint", x, y, player.id)
+                    #     flood_fill(player, x, y)
+
+                    #
+
                 player.position[rules.get(dir)[2]] += rules.get(dir)[3]
                 arrMap[player.position[0]][player.position[1]] = player.id
         else:
@@ -161,7 +215,6 @@ def update_map():
 
 
 threading.Thread(target=update_map).start()
-
 
 # @TODO TODO
 
