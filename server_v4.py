@@ -46,20 +46,20 @@ class Player:
 
     def __str__(self):
         return self.to_json()
-        # return "conn={0}, id={1}, pos={3}, dir={4}, cd_dots={5}, tp_dots{6}".format(self.conn, self.id, self.nickname,
-        #                                                                             self.position, self.direction,
-        #                                                                             self.claimed_dots,
-        #                                                                             self.temp_dots, self.live)
 
     def to_json(self):
-        return "{\"id\": {0}," \
-               "\"nickname\": {1}," \
-               "\"color\": {2}," \
-               "\"position\": {3}," \
-               "\"claimed_dots\": {4}," \
-               "\"temp_dots\": {5}},".format(self.id, self.nickname,
-                                            self.color, self.position,
-                                            self.claimed_dots, self.temp_dots)
+        #print(self.id, self.nickname, self.color, self.position, self.claimed_dots, self.temp_dots)
+        str_json = "{"
+        str_json += "\"id\": {0}," \
+                    "\"nickname\": \"{1}\"," \
+                    "\"color\": \"{2}\"," \
+                    "\"position\": {3}," \
+                    "\"claimed_dots\": [{4}]," \
+                    "\"temp_dots\": [{5}]".format(self.id, self.nickname, self.color, self.position,
+                                                  ", ".join(str(x) for x in self.claimed_dots),
+                                                  ", ".join(str(x) for x in self.temp_dots))
+        str_json += "},"
+        return str_json
 
 
 class GameMap:
@@ -69,11 +69,11 @@ class GameMap:
 
     def __init__(self, sizeMap):
         self.sizeMap = sizeMap
-        self.players = []
+        self.players = {}
         self.dots = [[0 for _ in range(0, sizeMap)] for _ in range(0, sizeMap)]
 
     def add_player(self, player):
-        players[player.conn] = player
+        self.players[player.conn] = player
 
     def remove_player(self, player):
         player.live = 0
@@ -83,14 +83,26 @@ class GameMap:
         player.id = -1
 
     def disconnect_player(self, player):
-        players.pop(player.conn)
+        self.players.pop(player.conn)
 
     def is_claimed(self, dot):
+        for p in self.players.values():
+            pass
+
         return
 
     def to_json(self):
-        return "{" + "\"data\":[" + (player.to_json() for player in self.players) + "]}"
+        str_json = "{ \"data\":[ "
+        for p in self.players.values():
+            str_json += p.to_json()
+        str_json = str_json[:-1]
+        str_json += "],"
+        str_json += "\"size_map\": {0}".format(self.sizeMap)
+        str_json += " }"
+        return str_json
 
+
+game_map = GameMap(30)
 
 MAX_PLAYERS = 10
 sizeMap = 50  # размер карты X*X

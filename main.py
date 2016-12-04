@@ -71,17 +71,26 @@ class Example(QWidget):
         except Exception: exit()
         time.sleep(1)
         def dict_to_str(dict):
-            str_arr = ""
-            for i in range(len(dict["map"])):
-                for j in range(len(dict["map"])):
-                    if [i, j] in [dict["players_positions"][i] for i in range(0, len(dict["players_positions"]))]:
-                        str_arr += ('(' + str(dict["map"][i][j]) + ')')
-                    else:
-                        if [i, j] in dict["all_dots"]:
-                            str_arr += (':' + str(dict["map"][i][j]) + ':')
-                        else:
-                            str_arr += ('[' + str(dict["map"][i][j]) + ']')
-                str_arr += "\n"
+            free_space = '_'  # символ для обозначения пустоты
+            size_map=dict["size_map"]
+            print(size_map)
+            arrMap = [[free_space for _ in range(0, size_map)] for _ in range(0, size_map)]  # сама карта (1 layout)
+
+
+
+
+
+            # str_arr = ""
+            # for i in range(size_map):
+            #     for j in range(size_map):
+            #         if [i, j] in [dict["players_positions"][i] for i in range(0, len(dict["players_positions"]))]:
+            #             str_arr += ('(' + str(dict["map"][i][j]) + ')')
+            #         else:
+            #             if [i, j] in dict["all_dots"]:
+            #                 str_arr += (':' + str(dict["map"][i][j]) + ':')
+            #             else:
+            #                 str_arr += ('[' + str(dict["map"][i][j]) + ']')
+            #     str_arr += "\n"
             return str_arr
 
         def send_command(command):
@@ -89,7 +98,7 @@ class Example(QWidget):
                 if command != "None":
                     s.send(command.encode())
                 print(command)
-                in1 = (s.recv(500000)).decode().replace("\'", "\"").split("}")[0] + "}"
+                in1 = (s.recv(500000)).decode().replace("\'", "\"")
                 print(in1, type(in1))
 
                 json1_data = json.loads(in1)

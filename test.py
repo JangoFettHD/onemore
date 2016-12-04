@@ -83,13 +83,9 @@ class Player:
 
     def __str__(self):
         return self.to_json()
-        # return "conn={0}, id={1}, pos={3}, dir={4}, cd_dots={5}, tp_dots{6}".format(self.conn, self.id, self.nickname,
-        #                                                                             self.position, self.direction,
-        #                                                                             self.claimed_dots,
-        #                                                                             self.temp_dots, self.live)
 
     def to_json(self):
-        print(self.id, self.nickname, self.color, self.position, self.claimed_dots, self.temp_dots)
+        #print(self.id, self.nickname, self.color, self.position, self.claimed_dots, self.temp_dots)
         str_json="{"
         str_json+="\"id\": {0}," \
                   "\"nickname\": \"{1}\"," \
@@ -99,7 +95,6 @@ class Player:
                   "\"temp_dots\": [{5}]".format(self.id, self.nickname,self.color, self.position, ", ".join(str(x) for x in self.claimed_dots), ", ".join(str(x) for x in self.temp_dots))
         str_json+="},"
         return str_json
-        # return "\{\"id\": {0}," + "\"nickname\": {1},"+ "\"color\": {2}," + "\"position\": {3},"+ "\"claimed_dots\": {4},"+"\"temp_dots\": {5}\},".format(self.id, self.nickname,self.color, self.position,self.claimed_dots, self.temp_dots)
 
 
 class GameMap:
@@ -133,7 +128,9 @@ class GameMap:
         for p in self.players.values():
             str_json += p.to_json()
         str_json = str_json[:-1]
-        str_json += "]}"
+        str_json += "],"
+        str_json += "\"size_map\": {0}".format(self.sizeMap)
+        str_json+=" }"
         return str_json
 
 
@@ -144,11 +141,4 @@ mapa.add_player(Player(("0.0.0.0",5152), 4, "#FFFFFF", "Jon", Dot(5, 2), 1,
 mapa.add_player(Player(("125.211.1.0",5166), 1, "#DDDFFF", "Kenny", Dot(3, 1), -1,
                        [Dot(2, 2), Dot(5, 2), Dot(7, 7)],
                        [Dot(1, 1), Dot(1, 2), Dot(5, 5)], 1))
-
-# mapa.add_player(Player(5152, 4, "#FFFFFF", "Jon", [1,1], 1,
-#                        [[1,4],[1,4],[1,4],[1,4]],
-#                        [[1,4],[1,4],[1,4],[1,4]], 1))
-# mapa.add_player(Player(5222, 1, "#DDDFFF", "Kenny",[4,4] , -1,
-#                        [[1,4],[1,4],[1,4],[1,4]],
-#                        [[1,4],[1,4],[1,4],[1,4]], 1))
 print(mapa.to_json())
