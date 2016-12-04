@@ -89,7 +89,7 @@ class Example(QWidget):
                 if command != "None":
                     s.send(command.encode())
                 print(command)
-                in1 = (s.recv(10000)).decode().replace("\'", "\"").split("}")[0] + "}"
+                in1 = (s.recv(500000)).decode().replace("\'", "\"").split("}")[0] + "}"
                 print(in1, type(in1))
 
                 json1_data = json.loads(in1)

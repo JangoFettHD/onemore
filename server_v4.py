@@ -38,7 +38,7 @@ class Player:
 
 
 MAX_PLAYERS = 10
-sizeMap = 30  # размер карты X*X
+sizeMap = 50  # размер карты X*X
 free_space = '_'  # символ для обозначения пустоты
 arrMap = [[free_space for _ in range(0, sizeMap)] for _ in range(0, sizeMap)]  # сама карта
 players = {}  # массив игроков
@@ -108,11 +108,23 @@ def delete_player(player):
     # if player.live == 0:
     #     print("P{0} ! Player {1} disconnected".format(player.id, player.nickname))
     # else:
+    all_temp_dots = []
+    for p in players.values():
+        for j in range(0, len(p.temp_dots)):
+            all_temp_dots.append([p.temp_dots[j], p])
+    all_claimed_dots = []
+    for p in players.values():
+        for j in range(0, len(p.claimed_dots)):
+            all_claimed_dots.append([p.claimed_dots[j], p])
+
+
     print("P{0} ! Player #{0} died!".format(player.id))
     for i in range(len(player.claimed_dots)):
-        arrMap[player.claimed_dots[i][0]][player.claimed_dots[i][1]] = free_space
+        if player.id == arrMap[player.claimed_dots[i][0]][player.claimed_dots[i][1]]:
+            arrMap[player.claimed_dots[i][0]][player.claimed_dots[i][1]] = free_space
     for i in range(len(player.temp_dots)):
-        arrMap[player.temp_dots[i][0]][player.temp_dots[i][1]] = free_space
+        if player.id == arrMap[player.temp_dots[i][0]][player.temp_dots[i][1]]:
+            arrMap[player.temp_dots[i][0]][player.temp_dots[i][1]] = free_space
     # players.pop(z)
     player.claimed_dots = []
     player.temp_dots = []
