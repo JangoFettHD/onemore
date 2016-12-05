@@ -17,7 +17,6 @@ players_to_delete=[]
 #     0.6sec
 #     move()
 #     gen(str_json)
-#
 # }
 
 class Dot:
@@ -230,8 +229,10 @@ class GameMap:
                         if live != 0:
                             p.temp_dots.append(rules.get(dir)[1])
                             if rules.get(dir)[1] in p.claimed_dots:
-
-                                p.claimed_dots += p.temp_dots
+                                #@TODO CHECK
+                                for dot in p.temp_dots:
+                                    if dot not in p.claimed_dots:
+                                        p.claimed_dots.append(dot)
 
                                 if p.claimed_dots:
                                     poly = Polygon([dot.to_list() for dot in p.claimed_dots])
@@ -248,6 +249,7 @@ class GameMap:
                     else:
                         p.live = 0
                         self.remove_player(p)
+
 
 
 mapa = GameMap(30)

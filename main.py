@@ -16,7 +16,10 @@ class Example(QWidget):
         self.initUI()
 
     def initUI(self):
+
+
         self.lbl = QLabel(self)
+        tv_leaderboard = QLabel(self)
         textview_id = QLabel(self)
         qpb_up = QPushButton(self)
         qpb_right = QPushButton(self)
@@ -24,6 +27,7 @@ class Example(QWidget):
         qpb_left = QPushButton(self)
 
         textview_id.move(264, 554)
+        tv_leaderboard.move(700, 40)
         qpb_up.move(250, 500)
         qpb_right.move(300, 550)
         qpb_down.move(250, 600)
@@ -35,7 +39,8 @@ class Example(QWidget):
         qpb_left.clicked.connect(self.move_left)
         qpb_right.clicked.connect(self.move_right)
 
-        self.setGeometry(200, 100, 530, 670)
+        tv_leaderboard.setText("LOL")
+        self.setGeometry(200, 100, 930, 670)
         self.setWindowTitle('OneMore')
         self.show()
 
@@ -75,6 +80,22 @@ class Example(QWidget):
             exit()
         time.sleep(1)
 
+
+        def show_leaderboard(dict):
+            str_lb=""
+            leadboard=[]
+            data=dict["data"]
+            for p in data:
+                leadboard.append([len(p["claimed_dots"]), p["nickname"]])
+            # leadboard.sort(key=leadboard[0])
+            print(leadboard)
+            for i in range(len(leadboard)):
+
+                str_lb+=str(leadboard[i][1])
+                str_lb+=" | "+str(leadboard[i][0])+" | {0}% \n".format(((leadboard[i][0]*0.1)/dict["size_map"]*dict["size_map"]))
+
+            return str_lb
+
         def dict_to_str(dict):
             free_space = '[_]'  # символ для обозначения пустоты
             claimed_space = ':{0}:'  # символ для обозначения пустоты
@@ -104,7 +125,6 @@ class Example(QWidget):
                 for j in range(size_map):
                     str_arr += arrMap[i][j]
                 str_arr += "\n"
-
             return str_arr
 
 
@@ -139,6 +159,8 @@ class Example(QWidget):
             time.sleep(0.1)
             s.send('getId'.encode())
             textview_id.setText((s.recv(10)).decode())
+            tv_leaderboard.setText(show_leaderboard(json1_data))
+            tv_leaderboard.adjustSize()
             # except Exception as e:
             #     print(e)
             #     exit()
@@ -171,6 +193,7 @@ class Example(QWidget):
 
     def onChanged(self, text):
         # print("SFSFSSFSFSSF")
+
         self.lbl.setText(text)
         self.lbl.adjustSize()
 
