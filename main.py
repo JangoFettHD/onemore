@@ -99,7 +99,7 @@ class Example(QWidget):
             for i in range(len(leadboard)):
 
                 str_lb+=str(leadboard[i][1])
-                str_lb+=" | "+str(leadboard[i][0])+" | {0}% \n".format(((leadboard[i][0]*0.1)/dict["size_map"]*dict["size_map"]))
+                str_lb+=" | "+str(leadboard[i][0])+" | {0}% \n".format(round(((leadboard[i][0]*0.1)/dict["size_map"]*dict["size_map"]),3))
 
             return str_lb
 

@@ -199,10 +199,13 @@ class GameMap:
             players_to_delete.remove(p)
 
     def update_map(self):
+
         self.delete_players()
         for p in self.players.values():
+            if not p.claimed_dots:
+                p.live = 0
+                self.remove_player(p)
             if p.live != 0:
-
                 all_temp_dots = self.all_temp_dots()
                 x = p.position.x
                 y = p.position.y
@@ -240,13 +243,14 @@ class GameMap:
                                     for i in range(0, self.sizeMap):
                                         for j in range(0, self.sizeMap):
                                             # print(i, j, poly.contains(Point(i, j)))
-                                            if poly.contains(Point(i, j)) and len(p.temp_dots)>0 and Dot(i,j) not in p.claimed_dots:
+                                            if poly.contains(Point(i, j)) and len(p.temp_dots)>0 and Dot(i,j) not in p.claimed_dots and Dot(i,j) not in p.temp_dots:
                                                 # print("paint",player.id,rules.get(dir)[4][0],rules.get(dir)[4][1], player.position)
                                                 flood_fill(p, i, j)
                                                 mapa.list_in_list(p)
                                 p.temp_dots = []
                             p.position[rules.get(dir)[2]] += rules.get(dir)[3]
                             #arrMap[player.position[0]][player.position[1]] = player.id
+
                     else:
                         p.live = 0
                         self.remove_player(p)
