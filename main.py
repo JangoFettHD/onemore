@@ -1,5 +1,7 @@
 import random
 import sys
+from PyQt5 import QtGui
+
 from PyQt5.QtWidgets import (QWidget, QLabel,
                              QLineEdit, QApplication, QPushButton)
 import socket
@@ -17,8 +19,13 @@ class Example(QWidget):
 
     def initUI(self):
 
+        font = QtGui.QFont()
+        font.setFamily('Lucida')
+        font.setFixedPitch(True)
+        font.setPointSize(10)
 
         self.lbl = QLabel(self)
+        self.lbl.setFont(font)
         tv_leaderboard = QLabel(self)
         textview_id = QLabel(self)
         qpb_up = QPushButton(self)
@@ -27,7 +34,7 @@ class Example(QWidget):
         qpb_left = QPushButton(self)
 
         textview_id.move(264, 554)
-        tv_leaderboard.move(700, 40)
+        tv_leaderboard.move(800, 40)
         qpb_up.move(250, 500)
         qpb_right.move(300, 550)
         qpb_down.move(250, 600)
@@ -40,7 +47,7 @@ class Example(QWidget):
         qpb_right.clicked.connect(self.move_right)
 
         tv_leaderboard.setText("LOL")
-        self.setGeometry(200, 100, 930, 670)
+        self.setGeometry(200, 100, 1030, 670)
         self.setWindowTitle('OneMore')
         self.show()
 

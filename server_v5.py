@@ -239,7 +239,7 @@ class GameMap:
                                     for i in range(0, self.sizeMap):
                                         for j in range(0, self.sizeMap):
                                             # print(i, j, poly.contains(Point(i, j)))
-                                            if poly.contains(Point(i, j)) and len(p.temp_dots)>0:
+                                            if poly.contains(Point(i, j)) and len(p.temp_dots)>0 and Dot(i,j) not in p.claimed_dots:
                                                 # print("paint",player.id,rules.get(dir)[4][0],rules.get(dir)[4][1], player.position)
                                                 flood_fill(p, i, j)
                                                 mapa.list_in_list(p)
