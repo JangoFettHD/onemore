@@ -28,6 +28,7 @@ class Example(QWidget):
         self.lbl.setFont(font)
         tv_leaderboard = QLabel(self)
         textview_id = QLabel(self)
+        qpb_restart = QPushButton(self)
         qpb_up = QPushButton(self)
         qpb_right = QPushButton(self)
         qpb_down = QPushButton(self)
@@ -36,12 +37,14 @@ class Example(QWidget):
         textview_id.move(264, 554)
         tv_leaderboard.move(800, 40)
         qpb_up.move(250, 500)
+        qpb_restart.move(0, 0)
         qpb_right.move(300, 550)
         qpb_down.move(250, 600)
         qpb_left.move(200, 550)
         self.lbl.move(60, 40)
 
         qpb_up.clicked.connect(self.move_up)
+        qpb_restart.clicked.connect(self.restart)
         qpb_down.clicked.connect(self.move_down)
         qpb_left.clicked.connect(self.move_left)
         qpb_right.clicked.connect(self.move_right)
@@ -125,7 +128,8 @@ class Example(QWidget):
                 p_temp_dots = p["temp_dots"]
                 for pos in p_temp_dots:
                     arrMap[pos[0]][pos[1]] = temp_space.format(p_id)
-                arrMap[p_position[0]][p_position[1]] = head_space.format(p_id)
+                if p["live"]==1:
+                    arrMap[p_position[0]][p_position[1]] = head_space.format(p_id)
 
             str_arr = ""
             for i in range(size_map):
@@ -154,13 +158,13 @@ class Example(QWidget):
             # try:
             if command != "None":
                 s.send(command.encode())
-            print(command)
-            in1 = (s.recv(500000)).decode().replace("\'", "\"")
+            #print(command)
+            in1 = (s.recv(100000)).decode().replace("\'", "\"")
             #print(in1, type(in1))
             json1_data = json.loads(in1)
             # print(dict_to_str(json1_data))
             str_map = dict_to_str(json1_data)
-            print(str_map)
+            #print(str_map)
             self.onChanged(str_map)
             # print(dict_to_str(json1_data))
             time.sleep(0.1)
@@ -181,6 +185,10 @@ class Example(QWidget):
         # while True:
         #     s.send(input("Enter \"move 1\"").encode())
         #     print((s.recv(1024)).decode())
+
+    def restart(self):
+        s.send("restart".encode())
+        print("1")
 
     def move_up(self):
         s.send("move 1".encode())

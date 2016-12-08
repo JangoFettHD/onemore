@@ -86,8 +86,9 @@ class Player:
                     "\"nickname\": \"{1}\"," \
                     "\"color\": \"{2}\"," \
                     "\"position\": {3}," \
-                    "\"claimed_dots\": [{4}]," \
-                    "\"temp_dots\": [{5}]".format(self.id, self.nickname, self.color, self.position,
+                    "\"live\": {4}," \
+                    "\"claimed_dots\": [{5}]," \
+                    "\"temp_dots\": [{6}]".format(self.id, self.nickname, self.color, self.position, self.live,
                                                   ", ".join(str(x) for x in self.claimed_dots),
                                                   ", ".join(str(x) for x in self.temp_dots))
         str_json += "},"
@@ -127,7 +128,7 @@ class GameMap:
         player.claimed_dots = []
         player.direction = -10
         player.temp_dots = []
-        player.id = -1
+        #player.id = -1
 
     def disconnect_player(self, player=0, addr=0):
         if addr == 0:
@@ -231,22 +232,26 @@ class GameMap:
                                 self.remove_player(all_temp_dots[k][1])
                                 live = 0
                         if live != 0:
-                            p.temp_dots.append(rules.get(dir)[1])
+                            if rules.get(dir)[1] not in p.claimed_dots:
+                                p.temp_dots.append(rules.get(dir)[1])
                             if rules.get(dir)[1] in p.claimed_dots:
                                 #@TODO CHECK
                                 for dot in p.temp_dots:
                                     if dot not in p.claimed_dots:
                                         p.claimed_dots.append(dot)
 
-                                if p.claimed_dots:
-                                    poly = Polygon([dot.to_list() for dot in p.claimed_dots])
-                                    for i in range(0, self.sizeMap):
-                                        for j in range(0, self.sizeMap):
-                                            # print(i, j, poly.contains(Point(i, j)))
-                                            if poly.contains(Point(i, j)) and len(p.temp_dots)>0 and Dot(i,j) not in p.claimed_dots and Dot(i,j) not in p.temp_dots:
-                                                # print("paint",player.id,rules.get(dir)[4][0],rules.get(dir)[4][1], player.position)
-                                                flood_fill(p, i, j)
-                                                mapa.list_in_list(p)
+                                if p.temp_dots:
+                                    try: #@TODO рекурсивно замыкать фигуру по крайним точкам из p.claimed_dots
+                                        poly = Polygon([dot.to_list() for dot in p.temp_dots])
+                                        for i in range(0, self.sizeMap):
+                                            for j in range(0, self.sizeMap):
+                                                # print(i, j, poly.contains(Point(i, j)))
+                                                if poly.contains(Point(i, j)) and len(p.temp_dots)>0 and Dot(i,j) not in p.claimed_dots and Dot(i,j) not in p.temp_dots:
+                                                    # print("paint",player.id,rules.get(dir)[4][0],rules.get(dir)[4][1], player.position)
+                                                    flood_fill(p, i, j)
+                                                    mapa.list_in_list(p)
+                                    except Exception as e:
+                                        print(">>EXCEPTION:",e)
                                 p.temp_dots = []
                             p.position[rules.get(dir)[2]] += rules.get(dir)[3]
                             #arrMap[player.position[0]][player.position[1]] = player.id
@@ -255,9 +260,17 @@ class GameMap:
                         p.live = 0
                         self.remove_player(p)
 
+    def revive(self, player):
+        player.live = 1
+        player.position = generate_init_pos()
+        player.claimed_dots = generate_init_base(player.position)
+        player.direction = int(random.uniform(-1.4, 2.4))
+        player.temp_dots = []
+        #player.id = generate_id()
 
 
 mapa = GameMap(30)
+
 
 
 # mapa.add_player(Player(("0.0.0.0", 5152), 4, "#FFFFFF", "Jon", Dot(5, 2), 1,
@@ -300,6 +313,9 @@ class CommandHandler(asyncore.dispatcher_with_send):
 
         if self.addr in mapa.players:
             player = mapa.players[self.addr]
+            if command[0] == "restart":
+                if player.live==0:
+                    mapa.revive(player)
             if command[0] == "move":
                 if not (player.direction == 0 and int(command[1]) == 2 or player
                         .direction == 2 and int(command[1]) == 0 or player.direction == -1 and int(
