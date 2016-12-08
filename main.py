@@ -167,7 +167,7 @@ class Example(QWidget):
             #print(str_map)
             self.onChanged(str_map)
             # print(dict_to_str(json1_data))
-            time.sleep(0.1)
+            # time.sleep(0.1)
             s.send('getId'.encode())
             textview_id.setText((s.recv(10)).decode())
             tv_leaderboard.setText(show_leaderboard(json1_data))

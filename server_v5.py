@@ -288,9 +288,9 @@ def update():
     global str_json
     while True:
         if mapa.players:
-            time.sleep(0.7)
+            time.sleep(0.5)
             mapa.update_map()
-            print("t")
+            # print("t")
             str_json=mapa.to_json()
 
 threading.Thread(target=update).start()
