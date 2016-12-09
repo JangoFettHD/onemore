@@ -1,6 +1,6 @@
 import asyncore
 import socket
-import zmq
+# import pyzmq
 import random
 import threading
 import time
@@ -302,48 +302,51 @@ class CommandHandler(asyncore.dispatcher_with_send):
         self.name = name
 
     def handle_read(self):
-        command = self.recv(1024)
+        try:
+            command = self.recv(1024)
 
-        if not command:
-            return
+            if not command:
+                return
 
-        else:
-            command = command.decode().split()
-            # print(command)
-
-        if self.addr in mapa.players:
-            player = mapa.players[self.addr]
-            if command[0] == "restart":
-                if player.live==0:
-                    mapa.revive(player)
-            if command[0] == "move":
-                if not (player.direction == 0 and int(command[1]) == 2 or player
-                        .direction == 2 and int(command[1]) == 0 or player.direction == -1 and int(
-                    command[1]) == 1 or player.direction == 1 and int(
-                    command[1]) == -1) and player.live == 1 and player.direction != int(command[1]):
-                    player.direction = int(command[1])
-                    print("P{0} | Change dir to {1}".format(player.id, player.direction))
-            elif command[0] == "getId":
-                self.send(str(player.id).encode())
-            elif command[0] == "getData":
-                print("getData")
-                res = str_json
-                self.send(str(res).encode())
             else:
-                vals = {}
-                vals["error"] = "Command not found"
-        else:
-            if command[0] == "reg":
-                nick = command[1]
-                temp_coords = generate_init_pos()
-                temp_id = generate_id()
-                temp_player = Player(self.addr, temp_id, "", nick,
-                                     temp_coords, int(random.uniform(-1.4, 2.4)),
-                                     generate_init_base(temp_coords),
-                                     [],
-                                     1)
-                mapa.add_player(temp_player)
-                print(temp_player.to_json())
+                command = command.decode().split()
+                # print(command)
+
+            if self.addr in mapa.players:
+                player = mapa.players[self.addr]
+                if command[0] == "restart":
+                    if player.live==0:
+                        mapa.revive(player)
+                if command[0] == "move":
+                    if not (player.direction == 0 and int(command[1]) == 2 or player
+                            .direction == 2 and int(command[1]) == 0 or player.direction == -1 and int(
+                        command[1]) == 1 or player.direction == 1 and int(
+                        command[1]) == -1) and player.live == 1 and player.direction != int(command[1]):
+                        player.direction = int(command[1])
+                        print("P{0} | Change dir to {1}".format(player.id, player.direction))
+                elif command[0] == "getId":
+                    self.send(str(player.id).encode())
+                elif command[0] == "getData":
+                    print("getData")
+                    res = str_json
+                    self.send(str(res).encode())
+                else:
+                    vals = {}
+                    vals["error"] = "Command not found"
+            else:
+                if command[0] == "reg":
+                    nick = command[1]
+                    temp_coords = generate_init_pos()
+                    temp_id = generate_id()
+                    temp_player = Player(self.addr, temp_id, "", nick,
+                                         temp_coords, int(random.uniform(-1.4, 2.4)),
+                                         generate_init_base(temp_coords),
+                                         [],
+                                         1)
+                    mapa.add_player(temp_player)
+                    print(temp_player.to_json())
+        except Exception as e:
+            print("EXCEPTION:",e)
 
     def handle_close(self):
         print("Disconnect " + str(self.addr))

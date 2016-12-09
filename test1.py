@@ -1,19 +1,56 @@
-import zmq
+
 import time
-import sys
+import threading
+import zmq
 
-port = "5556"
-if len(sys.argv) > 1:
-    port =  sys.argv[1]
-    int(port)
+def worker_routine(worker_url, context=None):
+    """Worker routine"""
+    context = context or zmq.Context.instance()
+    # Socket to talk to dispatcher
+    socket = context.socket(zmq.REP)
 
-context = zmq.Context()
-socket = context.socket(zmq.REP)
-socket.bind("tcp://*:%s" % port)
+    socket.connect(worker_url)
 
-while True:
-    #  Wait for next request from client
-    message = socket.recv()
-    print("Received request: ", message)
-    time.sleep (1)
-    socket.send_string("World from %s" % port)
+    while True:
+
+        string  = socket.recv_string()
+
+        print("Received request: [ {0} ] [ {1} ]".format(string, ))
+
+        # do some 'work'
+        time.sleep(1)
+
+        #send reply back to client
+        socket.send_string("World")
+
+def main():
+    """Server routine"""
+
+    url_worker = "inproc://workers"
+    url_client = "tcp://*:5555"
+
+    # Prepare our context and sockets
+    context = zmq.Context.instance()
+
+    # Socket to talk to clients
+    clients = context.socket(zmq.ROUTER)
+    clients.bind(url_client)
+
+    # Socket to talk to workers
+    workers = context.socket(zmq.DEALER)
+    workers.bind(url_worker)
+
+    # Launch pool of worker threads
+    for i in range(5):
+        thread = threading.Thread(target=worker_routine, args=(url_worker,))
+        thread.start()
+
+    zmq.proxy(clients, workers)
+
+    # We never get here but clean up anyhow
+    clients.close()
+    workers.close()
+    context.term()
+
+if __name__ == "__main__":
+    main()

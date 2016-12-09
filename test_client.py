@@ -1,7 +1,7 @@
 import zmq
 import sys
 
-port = "5557"
+port = "8080"
 if len(sys.argv) > 1:
     port =  sys.argv[1]
     int(port)
@@ -23,4 +23,6 @@ for request in range (1,20):
     socket.send_string("Hello")
     #  Get the reply.
     message = socket.recv()
+    print(message)
+
 print("Received reply ", request, "[", message, "]")
