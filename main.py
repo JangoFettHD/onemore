@@ -230,7 +230,7 @@ if __name__ == '__main__':
     # s.connect(("127.0.0.1", 6001))
 
     # HOST = 'jangofetthd.me'  # The remote host
-    HOST = 'jangofetthd.me'  # The remote host
+    HOST = '127.0.0.1'  # The remote host
     PORT = 1566  # The same port as used by the server
     s = None
     for res in socket.getaddrinfo(HOST, PORT, socket.AF_UNSPEC, socket.SOCK_STREAM):

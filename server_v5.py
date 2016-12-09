@@ -8,11 +8,15 @@ import sys
 from shapely.geometry import Point, Polygon
 
 MAX_PLAYERS = 10
-user_can_be_disconected=True
+user_can_be_disconected = True
 str_json = ""
 
-players_to_delete=[]
-#@TODO
+sys.setrecursionlimit(15500)
+
+players_to_delete = []
+
+
+# @TODO
 
 # update(){
 #     0.6sec
@@ -25,13 +29,19 @@ class Dot:
     x = 0
     y = 0
 
+    # extra=0
+
     def __init__(self, x, y):
+        # self.extra = extra
         self.coord = [x, y]
         self.x = x
         self.y = y
 
+    def __hash__(self):
+        return hash("Hash_dot " + str(self))
+
     def __eq__(self, other):
-        if type(other)==type(self):
+        if type(other) == type(self):
             return self.coord == other.coord
         return False
 
@@ -42,16 +52,16 @@ class Dot:
         return [self.x, self.y]
 
     def __getitem__(self, i):
-        if i==0:
+        if i == 0:
             return self.x
-        elif i==1:
+        elif i == 1:
             return self.y
 
     def __setitem__(self, key, value):
-        if key==0:
-            self.x=value
-        elif key==1:
-            self.y=value
+        if key == 0:
+            self.x = value
+        elif key == 1:
+            self.y = value
 
 
 class Player:
@@ -96,9 +106,9 @@ class Player:
 
 
 def flood_fill(player, i, j):
-    if Dot(i,j) not in player.claimed_dots:
-        if Dot(i,j) not in player.claimed_dots:
-            player.claimed_dots.append(Dot(i,j))
+    if Dot(i, j) not in player.claimed_dots:
+        if Dot(i, j) not in player.claimed_dots:
+            player.claimed_dots.append(Dot(i, j))
         if i != 0:
             flood_fill(player, i - 1, j)
         if j != 0:
@@ -107,7 +117,7 @@ def flood_fill(player, i, j):
             flood_fill(player, i + 1, j)
         if j != (mapa.sizeMap - 1):
             flood_fill(player, i, j + 1)
-        #player.claimed_dots.append([i, j])
+            # player.claimed_dots.append([i, j])
 
 
 class GameMap:
@@ -128,7 +138,7 @@ class GameMap:
         player.claimed_dots = []
         player.direction = -10
         player.temp_dots = []
-        #player.id = -1
+        # player.id = -1
 
     def disconnect_player(self, player=0, addr=0):
         if addr == 0:
@@ -161,11 +171,10 @@ class GameMap:
         str_json += " }"
         return str_json
 
-
     def list_in_list(self, p):
-        a=[]
+        a = []
         for opl in self.players.values():
-            if opl!=p:
+            if opl != p:
                 for d in \
                         p.claimed_dots:
                     if d in \
@@ -173,7 +182,6 @@ class GameMap:
                         a.append(d)
                 for x in a:
                     opl.claimed_dots.remove(x)
-
 
     def not_free_dots(self):
         all_temp_dots = []
@@ -183,8 +191,8 @@ class GameMap:
                 all_temp_dots.append(p.temp_dots[j])
             for j in range(0, len(p.claimed_dots)):
                 all_claimed_dots.append(p.claimed_dots[j])
-        print(all_temp_dots,all_claimed_dots)
-        print(all_temp_dots+all_claimed_dots)
+        print(all_temp_dots, all_claimed_dots)
+        print(all_temp_dots + all_claimed_dots)
         return all_claimed_dots + all_temp_dots
 
     def all_temp_dots(self):
@@ -198,6 +206,59 @@ class GameMap:
         for p in players_to_delete:
             self.disconnect_player(addr=p.conn)
             players_to_delete.remove(p)
+
+    def space_is_close(self, p):
+        start = p.temp_dots[0]
+        finish = p.temp_dots[-1]
+        temp_array = {}
+        # start.extra=len(temp_array)*2
+        # temp_array+=p.claimed_dots
+        print("start_space_is_close")
+        for dot in p.claimed_dots:
+            temp_array[dot] = 0
+
+        for dot in p.temp_dots:
+            if dot not in p.claimed_dots:
+                temp_array[dot] = 0
+        print("start_voln")
+
+        def voln(x, y, c):
+            # curr=Dot(x, y)
+            # print(">>C: ",c)
+            # print("curr=",curr)
+            # print("curr-y+1: ", curr.extra+1)
+            # lab[x][y] = cur
+            # temp_array.remove(Dot(x,y))
+            # temp_array.append(Dot(x,y,c))
+            temp_array[Dot(x, y)] = c
+            print(Dot(x,y),temp_array[Dot(x, y)])
+            # print(Dot(x,y + 1) in temp_array)
+
+            if Dot(x, y) == finish:
+                print(">>Dot: ", Dot(x, y), "; Finish: ", finish)
+                return True
+            if c <= 0:
+                print(c)
+                return False
+            if Dot(x, y + 1) in temp_array:
+                if temp_array[Dot(x, y + 1)] == 0 or (
+                        temp_array[Dot(x, y + 1)] != -1 and temp_array[Dot(x, y + 1)] < c):
+                    return voln(x, y + 1, c - 1)
+            if Dot(x, y - 1) in temp_array:
+                if temp_array[Dot(x, y - 1)] == 0 or (
+                                temp_array[Dot(x, y - 1)] != -1 and temp_array[Dot(x, y - 1)] < c):
+                    return voln(x, y - 1, c - 1)
+            if Dot(x + 1, y) in temp_array:
+                if temp_array[Dot(x + 1, y)] == 0 or (
+                                temp_array[Dot(x + 1, y)] != -1 and temp_array[Dot(x + 1, y)] < c):
+                    return voln(x + 1, y, c - 1)
+            if Dot(x - 1, y) in temp_array:
+                if temp_array[Dot(x - 1, y)] == 0 or (
+                                temp_array[Dot(x - 1, y)] != -1 and temp_array[Dot(x - 1, y)] < c):
+                    return voln(x - 1, y, c - 1)
+        a=voln(start.x, start.y, len(temp_array) * 2)
+        print(a)
+        return a
 
     def update_map(self):
 
@@ -235,26 +296,28 @@ class GameMap:
                             if rules.get(dir)[1] not in p.claimed_dots:
                                 p.temp_dots.append(rules.get(dir)[1])
                             if rules.get(dir)[1] in p.claimed_dots:
-                                #@TODO CHECK
+                                # @TODO CHECK
                                 for dot in p.temp_dots:
                                     if dot not in p.claimed_dots:
                                         p.claimed_dots.append(dot)
 
                                 if p.temp_dots:
-                                    try: #@TODO рекурсивно замыкать фигуру по крайним точкам из p.claimed_dots
+                                    try:  # @TODO рекурсивно замыкать фигуру по крайним точкам из p.claimed_dots
                                         poly = Polygon([dot.to_list() for dot in p.temp_dots])
                                         for i in range(0, self.sizeMap):
                                             for j in range(0, self.sizeMap):
                                                 # print(i, j, poly.contains(Point(i, j)))
-                                                if poly.contains(Point(i, j)) and len(p.temp_dots)>0 and Dot(i,j) not in p.claimed_dots and Dot(i,j) not in p.temp_dots:
+                                                if poly.contains(Point(i, j)) and len(p.temp_dots) > 0 and Dot(i,
+                                                                                                               j) not in p.claimed_dots and Dot(
+                                                        i, j) not in p.temp_dots and mapa.space_is_close(p):
                                                     # print("paint",player.id,rules.get(dir)[4][0],rules.get(dir)[4][1], player.position)
                                                     flood_fill(p, i, j)
                                                     mapa.list_in_list(p)
                                     except Exception as e:
-                                        print(">>EXCEPTION:",e)
+                                        print(">>EXCEPTION:", e)
                                 p.temp_dots = []
                             p.position[rules.get(dir)[2]] += rules.get(dir)[3]
-                            #arrMap[player.position[0]][player.position[1]] = player.id
+                            # arrMap[player.position[0]][player.position[1]] = player.id
 
                     else:
                         p.live = 0
@@ -266,11 +329,10 @@ class GameMap:
         player.claimed_dots = generate_init_base(player.position)
         player.direction = int(random.uniform(-1.4, 2.4))
         player.temp_dots = []
-        #player.id = generate_id()
+        # player.id = generate_id()
 
 
 mapa = GameMap(30)
-
 
 
 # mapa.add_player(Player(("0.0.0.0", 5152), 4, "#FFFFFF", "Jon", Dot(5, 2), 1,
@@ -291,7 +353,8 @@ def update():
             time.sleep(0.5)
             mapa.update_map()
             # print("t")
-            str_json=mapa.to_json()
+            str_json = mapa.to_json()
+
 
 threading.Thread(target=update).start()
 
@@ -315,7 +378,7 @@ class CommandHandler(asyncore.dispatcher_with_send):
             if self.addr in mapa.players:
                 player = mapa.players[self.addr]
                 if command[0] == "restart":
-                    if player.live==0:
+                    if player.live == 0:
                         mapa.revive(player)
                 if command[0] == "move":
                     if not (player.direction == 0 and int(command[1]) == 2 or player
@@ -346,7 +409,7 @@ class CommandHandler(asyncore.dispatcher_with_send):
                     mapa.add_player(temp_player)
                     print(temp_player.to_json())
         except Exception as e:
-            print("EXCEPTION:",e)
+            print("EXCEPTION:", e)
 
     def handle_close(self):
         print("Disconnect " + str(self.addr))
@@ -363,7 +426,7 @@ def generate_id():
                 for p in mapa.players.values():
                     ex_ids.append(p.id)
             a = []
-            for i in range(1,MAX_PLAYERS):
+            for i in range(1, MAX_PLAYERS):
                 a.append(i)
             for x in ex_ids:
                 if x in a:
@@ -373,15 +436,17 @@ def generate_id():
         except Exception as e:
             print(">> EXCEPTION: ", e)
 
-def check_arr_in_arr(a,b):
+
+def check_arr_in_arr(a, b):
     for x in a:
         if x not in b:
             return False
         return True
 
+
 def generate_init_pos():
     base = []
-    map1=mapa.not_free_dots()
+    map1 = mapa.not_free_dots()
     x = -1
     y = -1
     print(base, mapa.not_free_dots())
@@ -421,7 +486,7 @@ class Server(asyncore.dispatcher):
         if pair is None:
             return
         else:
-            if len(mapa.players) < MAX_PLAYERS-1:
+            if len(mapa.players) < MAX_PLAYERS - 1:
                 sock, addr = pair
                 print('Incoming connection from %s' % repr(addr))
                 self.handler = CommandHandler(str(addr), sock)
