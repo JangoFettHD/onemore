@@ -1,6 +1,6 @@
 import asyncore
 import socket
-# import pyzmq
+import zmq
 import random
 import threading
 import time

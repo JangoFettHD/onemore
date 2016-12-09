@@ -1,15 +1,19 @@
-a=[1,5,2,3,8]
-b=[1,2,3,4,5,6,7,8,9]
-# for x in a:
-#   if x not in b:
-#       return False
-#   return True
+import zmq
+import time
+import sys
 
-def check(a,b):
-    for x in a:
-        if x not in b:
-            return False
-        return True
+port = "5556"
+if len(sys.argv) > 1:
+    port =  sys.argv[1]
+    int(port)
 
+context = zmq.Context()
+socket = context.socket(zmq.REP)
+socket.bind("tcp://*:%s" % port)
 
-print(check([1, 5, 2, 3, 8],[1, 2, 3, 4, 5, 6, 7, 8, 9]))
+while True:
+    #  Wait for next request from client
+    message = socket.recv()
+    print("Received request: ", message)
+    time.sleep (1)
+    socket.send_string("World from %s" % port)

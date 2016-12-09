@@ -54,6 +54,7 @@ class Example(QWidget):
         self.setWindowTitle('OneMore')
         self.show()
 
+
         direction = 0
 
         # s = socket.socket(socket.AF_INET)
@@ -89,6 +90,9 @@ class Example(QWidget):
         except Exception:
             exit()
         time.sleep(1)
+
+        s.send('getId'.encode())
+        textview_id.setText((s.recv(10)).decode())
 
 
         def show_leaderboard(dict):
@@ -155,29 +159,37 @@ class Example(QWidget):
             #     str_arr += "\n"
 
         def send_command(command):
-            # try:
-            if command != "None":
-                s.send(command.encode())
-            #print(command)
-            in1 = (s.recv(100000)).decode().replace("\'", "\"")
-            #print(in1, type(in1))
-            json1_data = json.loads(in1)
-            # print(dict_to_str(json1_data))
-            str_map = dict_to_str(json1_data)
-            #print(str_map)
-            self.onChanged(str_map)
-            # print(dict_to_str(json1_data))
-            # time.sleep(0.1)
-            s.send('getId'.encode())
-            textview_id.setText((s.recv(10)).decode())
-            tv_leaderboard.setText(show_leaderboard(json1_data))
-            tv_leaderboard.adjustSize()
-            # except Exception as e:
-            #     print(e)
+            try:
+                if command != "None":
+                    s.send(command.encode())
+                #print(command)
+                in1=""
+                temp=""
+                while len(temp)==0:
+                    temp=""
+                    temp = (s.recv(10000)).decode().replace("\'", "\"")
+                    print("0",temp)
+                    in1+=temp
+                if "}{" in in1:
+                    in1=in1.split("}{")+"}"
+                print(in1, type(in1))
+                json1_data = json.loads(in1)
+                # print(dict_to_str(json1_data))
+                str_map = dict_to_str(json1_data)
+                #print(str_map)
+                self.onChanged(str_map)
+                # print(dict_to_str(json1_data))
+                # time.sleep(0.1)
+
+                tv_leaderboard.setText(show_leaderboard(json1_data))
+                tv_leaderboard.adjustSize()
+            except Exception as e:
+                print(e)
             #     exit()
 
         def show_map():
             while True:
+                print("0000hhhh MYYYY")
                 send_command("getData")
                 time.sleep(0.2)
 
@@ -218,7 +230,7 @@ if __name__ == '__main__':
     # s.connect(("127.0.0.1", 6001))
 
     # HOST = 'jangofetthd.me'  # The remote host
-    HOST = '127.0.0.1'  # The remote host
+    HOST = 'jangofetthd.me'  # The remote host
     PORT = 1566  # The same port as used by the server
     s = None
     for res in socket.getaddrinfo(HOST, PORT, socket.AF_UNSPEC, socket.SOCK_STREAM):
