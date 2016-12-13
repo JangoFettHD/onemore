@@ -106,18 +106,21 @@ class Player:
 
 
 def flood_fill(player, i, j):
-    if Dot(i, j) not in player.claimed_dots:
+    try:
         if Dot(i, j) not in player.claimed_dots:
+            # if Dot(i, j) not in player.claimed_dots:
             player.claimed_dots.append(Dot(i, j))
-        if i != 0:
-            flood_fill(player, i - 1, j)
-        if j != 0:
-            flood_fill(player, i, j - 1)
-        if i != (mapa.sizeMap - 1):
-            flood_fill(player, i + 1, j)
-        if j != (mapa.sizeMap - 1):
-            flood_fill(player, i, j + 1)
-            # player.claimed_dots.append([i, j])
+            if i != -1: #0
+                flood_fill(player, i - 1, j)
+            if j != -1: #0
+                flood_fill(player, i, j - 1)
+            if i != (mapa.sizeMap): #-1
+                flood_fill(player, i + 1, j)
+            if j != (mapa.sizeMap): #-1
+                flood_fill(player, i, j + 1)
+                # player.claimed_dots.append([i, j])
+    except Exception as e:
+        print(">>EXCEPT Flood_Fill:",e)
 
 
 class GameMap:
@@ -237,26 +240,27 @@ class GameMap:
             if Dot(x, y) == finish:
                 print(">>Dot: ", Dot(x, y), "; Finish: ", finish)
                 return True
-            if c <= 0:
-                print(c)
-                return False
+            # if c <= 0:
+            #     print(c)
+            #     return False
             if Dot(x, y + 1) in temp_array:
                 if temp_array[Dot(x, y + 1)] == 0 or (
-                        temp_array[Dot(x, y + 1)] != -1 and temp_array[Dot(x, y + 1)] < c):
-                    return voln(x, y + 1, c - 1)
+                        temp_array[Dot(x, y + 1)] != -1 and temp_array[Dot(x, y + 1)] > c):
+                    return voln(x, y + 1, c + 1)
             if Dot(x, y - 1) in temp_array:
                 if temp_array[Dot(x, y - 1)] == 0 or (
-                                temp_array[Dot(x, y - 1)] != -1 and temp_array[Dot(x, y - 1)] < c):
-                    return voln(x, y - 1, c - 1)
+                                temp_array[Dot(x, y - 1)] != -1 and temp_array[Dot(x, y - 1)] > c):
+                    return voln(x, y - 1, c + 1)
             if Dot(x + 1, y) in temp_array:
                 if temp_array[Dot(x + 1, y)] == 0 or (
-                                temp_array[Dot(x + 1, y)] != -1 and temp_array[Dot(x + 1, y)] < c):
-                    return voln(x + 1, y, c - 1)
+                                temp_array[Dot(x + 1, y)] != -1 and temp_array[Dot(x + 1, y)] > c):
+                    return voln(x + 1, y, c + 1)
             if Dot(x - 1, y) in temp_array:
                 if temp_array[Dot(x - 1, y)] == 0 or (
-                                temp_array[Dot(x - 1, y)] != -1 and temp_array[Dot(x - 1, y)] < c):
-                    return voln(x - 1, y, c - 1)
-        a=voln(start.x, start.y, len(temp_array) * 2)
+                                temp_array[Dot(x - 1, y)] != -1 and temp_array[Dot(x - 1, y)] > c):
+                    return voln(x - 1, y, c + 1)
+
+        a=voln(start.x, start.y, 1)
         print(a)
         return a
 
@@ -309,7 +313,7 @@ class GameMap:
                                                 # print(i, j, poly.contains(Point(i, j)))
                                                 if poly.contains(Point(i, j)) and len(p.temp_dots) > 0 and Dot(i,
                                                                                                                j) not in p.claimed_dots and Dot(
-                                                        i, j) not in p.temp_dots and mapa.space_is_close(p):
+                                                        i, j) not in p.temp_dots:# and mapa.space_is_close(p):
                                                     # print("paint",player.id,rules.get(dir)[4][0],rules.get(dir)[4][1], player.position)
                                                     flood_fill(p, i, j)
                                                     mapa.list_in_list(p)

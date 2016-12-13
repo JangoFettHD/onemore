@@ -1,6 +1,7 @@
 import random
 import sys
 from PyQt5 import QtGui
+from PyQt5 import QtCore
 
 from PyQt5.QtWidgets import (QWidget, QLabel,
                              QLineEdit, QApplication, QPushButton)
@@ -11,6 +12,9 @@ import json
 
 
 # compitable with server_version==4
+# from PyQt5.uic.uiparser import QtCore
+
+
 class Example(QWidget):
     def __init__(self):
         super().__init__()
@@ -201,28 +205,49 @@ class Example(QWidget):
     def restart(self):
         s.send("restart".encode())
         print("1")
+        time.sleep(0.2)
 
     def move_up(self):
         s.send("move 1".encode())
         print("1")
+        time.sleep(0.2)
 
     def move_down(self):
         s.send("move -1".encode())
         print("-1")
+        time.sleep(0.2)
 
     def move_left(self):
         s.send("move 0".encode())
         print("0")
+        time.sleep(0.2)
 
     def move_right(self):
         s.send("move 2".encode())
         print("2")
+        time.sleep(0.2)
 
     def onChanged(self, text):
         # print("SFSFSSFSFSSF")
 
         self.lbl.setText(text)
         self.lbl.adjustSize()
+
+    def keyPressEvent(self, event):
+        key = event.key()
+        if key == QtCore.Qt.Key_W:
+            self.move_up()
+            # self.ui.pushButton.animateClick(100)
+        elif key == QtCore.Qt.Key_S:
+            self.move_down()
+        elif key == QtCore.Qt.Key_A:
+            self.move_left()
+        elif key == QtCore.Qt.Key_D:
+            self.move_right()
+        elif key == QtCore.Qt.Key_R:
+            self.restart()
+            # self.Playnote('/home/hemanth/hemanth/Piano/D.mp3')
+            # self.ui.pushButton_2.animateClick(100)
 
 
 if __name__ == '__main__':
